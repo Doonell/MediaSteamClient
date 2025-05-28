@@ -1,0 +1,348 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EEE2393C-A144-3230-A320-0EE1246A2F9D}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ZHMedia</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\ZHMedia\build\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ZHMedia.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ZHMedia</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\ZHMedia\build\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ZHMedia.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ZHMedia</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\ZHMedia\build\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ZHMedia.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ZHMedia</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\ZHMedia\build\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ZHMedia.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ZHMedia</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>3rdParty\librtmp\Debug\rtmp.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avutil.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avformat.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avcodec.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avdevice.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avfilter.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avutil.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\postproc.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swresample.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swscale.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2main.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avformat.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avcodec.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avdevice.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avfilter.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\postproc.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swresample.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swscale.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/ZHMedia/build/Debug/ZHMedia.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/ZHMedia/build/Debug/ZHMedia.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>3rdParty\librtmp\Release\rtmp.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avutil.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avformat.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avcodec.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avdevice.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avfilter.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avutil.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\postproc.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swresample.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swscale.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2main.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avformat.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avcodec.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avdevice.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avfilter.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\postproc.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swresample.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swscale.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/ZHMedia/build/Release/ZHMedia.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/ZHMedia/build/Release/ZHMedia.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>3rdParty\librtmp\MinSizeRel\rtmp.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avutil.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avformat.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avcodec.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avdevice.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avfilter.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avutil.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\postproc.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swresample.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swscale.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2main.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avformat.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avcodec.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avdevice.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avfilter.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\postproc.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swresample.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swscale.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/ZHMedia/build/MinSizeRel/ZHMedia.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/ZHMedia/build/MinSizeRel/ZHMedia.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\include;D:\ZHMedia\3rdparty\SDL2\include;D:\ZHMedia\3rdParty\librtmp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>3rdParty\librtmp\RelWithDebInfo\rtmp.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avutil.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avformat.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avcodec.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avdevice.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avfilter.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avutil.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\postproc.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swresample.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swscale.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2main.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avformat.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avcodec.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avdevice.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\avfilter.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\postproc.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swresample.lib;D:\ZHMedia\3rdparty\ffmpeg\ffmpeg-4.3.1-2020-11-19-full_build-shared\lib\swscale.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2.lib;D:\ZHMedia\3rdparty\SDL2\lib\x64\SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/ZHMedia/build/RelWithDebInfo/ZHMedia.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/ZHMedia/build/RelWithDebInfo/ZHMedia.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\ZHMedia\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule D:/ZHMedia/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/ZHMedia -BD:/ZHMedia/build --check-stamp-file D:/ZHMedia/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\WindowsPaths.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeCXXCompiler.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeRCCompiler.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\ZHMedia\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule D:/ZHMedia/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/ZHMedia -BD:/ZHMedia/build --check-stamp-file D:/ZHMedia/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\WindowsPaths.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeCXXCompiler.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeRCCompiler.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\ZHMedia\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule D:/ZHMedia/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/ZHMedia -BD:/ZHMedia/build --check-stamp-file D:/ZHMedia/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\WindowsPaths.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeCXXCompiler.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeRCCompiler.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\ZHMedia\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule D:/ZHMedia/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/ZHMedia -BD:/ZHMedia/build --check-stamp-file D:/ZHMedia/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\WindowsPaths.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeCXXCompiler.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeRCCompiler.cmake;D:\ZHMedia\build\CMakeFiles\3.30.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\ZHMedia\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="D:\ZHMedia\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="D:\ZHMedia\build\ZERO_CHECK.vcxproj">
+      <Project>{1116AE5D-76A4-397E-9333-DB3CCC0652D4}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="D:\ZHMedia\build\3rdParty\librtmp\rtmp.vcxproj">
+      <Project>{C4939889-845F-3D2B-B729-B5318DBDDA87}</Project>
+      <Name>rtmp</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

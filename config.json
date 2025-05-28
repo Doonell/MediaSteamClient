@@ -1,0 +1,29 @@
+{
+    "rtmpurl": "rtmp://192.168.133.128/live/livestream",
+    "audio": {
+        "sample_rate": 44100,
+        "bitrate": 128000,
+        "channels": 2
+    },
+    "Video": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "gop": 60,
+        "bitrate": 2000000,
+        "bframes": 2
+    },
+    "Display": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080,
+        "pixel_format": "RGB",
+        "fps": 30
+    },
+    "Mic": {
+        "sample_rate": 44100,
+        "channels": 2,
+        "sample_fmt": "S16"
+    }
+}
