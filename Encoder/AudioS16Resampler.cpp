@@ -1,19 +1,43 @@
 #include "AudioS16Resampler.h"
-
+#include "../Logger/Logger.h"
+#include <memory>
+#include <vector>
 namespace Encoder {
 
-AudioS16Resampler::AudioS16Resampler(int srcChannels, int dstChannels,
-                                     int srcSampleRate, int dstSampleRate,
-                                     int srcSampleFormat, int dstSampleFormat)
-    : src_channels_(srcChannels), dst_channels_(dstChannels),
-      src_sample_rate_(srcSampleRate), dst_sample_rate_(dstSampleRate),
-      src_sample_format_(srcSampleFormat), dst_sample_format_(dstSampleFormat) {
-  src_channels_layout_ = av_get_default_channel_layout(srcChannels);
-  dst_channels_layout_ = av_get_default_channel_layout(dstChannels);
+AudioS16Resampler::AudioS16Resampler(int srcSampleRate, int dstSampleRate,
+                                     AVSampleFormat srcSampleFormat,
+                                     AVSampleFormat dstSampleFormat,
+                                     int srcChannelsLayout,
+                                     int dstChannelsLayout)
+    : src_channels_layout_(srcChannelsLayout),
+      dst_channels_layout_(dstChannelsLayout), src_sample_rate_(srcSampleRate),
+      dst_sample_rate_(dstSampleRate), src_sample_format_(srcSampleFormat),
+      dst_sample_format_(dstSampleFormat) {
+  src_channels_ = av_get_default_channel_layout(src_channels_layout_);
+  dst_channels_ = av_get_default_channel_layout(dst_channels_layout_);
+}
+
+AudioS16Resampler::~AudioS16Resampler() {
+  if (swr_ctx_)
+    swr_free(&swr_ctx_);
+  if (audioFifo_) {
+    av_audio_fifo_free(audioFifo_);
+    audioFifo_ = nullptr;
+  }
+  if (resampled_data_)
+    av_freep(&resampled_data_[0]);
+  av_freep(&resampled_data_);
 }
 
 bool AudioS16Resampler::init() {
-  // Initialize the resampler
+  src_channels_ = av_get_channel_layout_nb_channels(src_channels_layout_);
+  dst_channels_ = av_get_channel_layout_nb_channels(dst_channels_layout_);
+  audioFifo_ = av_audio_fifo_alloc(dst_sample_format_, dst_channels_, 1);
+  if (!audioFifo_) {
+    LOG_ERROR("%s av_audio_fifo_alloc failed", logtag_.c_str());
+    return false;
+  }
+
   swr_ctx_ = swr_alloc();
   if (!swr_ctx_) {
     LOG_ERROR("Could not allocate resampling context");
@@ -25,7 +49,7 @@ bool AudioS16Resampler::init() {
       av_opt_set_int(swr_ctx_, "in_channel_layout", src_channels_layout_, 0);
   swrOpts |= av_opt_set_int(swr_ctx_, "in_sample_rate", src_sample_rate_, 0);
   swrOpts |=
-      sw_opt_set_sample_fmt(swr_ctx_, "in_sample_fmt", src_sample_format_, 0);
+      av_opt_set_sample_fmt(swr_ctx_, "in_sample_fmt", src_sample_format_, 0);
 
   swrOpts |=
       av_opt_set_int(swr_ctx_, "out_channel_layout", dst_channels_layout_, 0);
@@ -41,13 +65,13 @@ bool AudioS16Resampler::init() {
     LOG_ERROR("Could not initialize resampling context");
     return false;
   }
-
-  dst_nb_samples = av_rescale_rnd(src_nb_samples_, dst_sample_rate_,
+  int src_nb_samples = 1024;
+  dst_nb_samples = av_rescale_rnd(src_nb_samples, dst_sample_rate_,
                                   src_sample_rate_, AV_ROUND_UP);
   max_dst_nb_samples_ = dst_nb_samples;
-  int ret = av_samples_alloc_array_and_samples(&resampled_data_, &dst_channels_,
-                                               &dst_sample_rate_,
-                                               &dst_sample_format_, 0);
+  int ret = av_samples_alloc_array_and_samples(&resampled_data_, &dst_linesize,
+                                               dst_channels_, dst_sample_rate_,
+                                               dst_sample_format_, 0);
   if (ret < 0) {
     LOG_ERROR("Could not allocate resampled data");
     return false;
@@ -55,7 +79,7 @@ bool AudioS16Resampler::init() {
   return true;
 }
 
-int AudioResampler::sendResampleFrame(uint8_t *in_pcm, const int in_size) {
+int AudioS16Resampler::sendFrame(uint8_t *in_pcm, const int in_size) {
   auto frame = std::shared_ptr<AVFrame>(
       av_frame_alloc(), [](AVFrame *frame) { av_frame_free(&frame); });
   if (!frame) {
@@ -92,9 +116,9 @@ int AudioResampler::sendResampleFrame(uint8_t *in_pcm, const int in_size) {
   return av_audio_fifo_write(audioFifo_, (void **)resampled_data_, nb_samples);
 }
 
-bool AudioS16Resampler::receiveResampledFrame(
-    vector<shared_ptr<AVFrame>> &frames, int desired_size) {
-  if (desire_size <= 0) {
+bool AudioS16Resampler::receiveFrame(
+    std::vector<std::shared_ptr<AVFrame>> &frames, int desired_size) {
+  if (desired_size <= 0) {
     LOG_ERROR("desired_size is invalid");
     return false;
   }
@@ -112,12 +136,11 @@ bool AudioS16Resampler::receiveResampledFrame(
   return true;
 }
 
-shared_ptr<AVFrame>
+std::shared_ptr<AVFrame>
 AudioS16Resampler::readFrameFromFifo(const int desiredSize) {
   auto frame = createFrameBySamples(desiredSize);
   if (frame) {
-    int ret =
-        av_audio_fifo_read(audio_fifo_, (void **)frame->data, desiredSize);
+    int ret = av_audio_fifo_read(audioFifo_, (void **)frame->data, desiredSize);
     if (ret <= 0) {
       LOG_ERROR("av_audio_fifo_read failed");
     }
@@ -128,24 +151,24 @@ AudioS16Resampler::readFrameFromFifo(const int desiredSize) {
   return frame;
 }
 
-shared_ptr<AVFrame>
+std::shared_ptr<AVFrame>
 AudioS16Resampler::createFrameBySamples(const int nb_samples) {
   auto doFreeFrame = [](AVFrame *p) {
     if (p)
       av_frame_free(&p);
   };
-  auto frame = shared_ptr<AVFrame>(av_frame_alloc(), doFreeFrame);
+  auto frame = std::shared_ptr<AVFrame>(av_frame_alloc(), doFreeFrame);
   if (!frame) {
     LOG_ERROR("%s av_frame_alloc frame failed", logtag_.c_str());
     return {};
   }
   frame->nb_samples = nb_samples;
-  frame->channel_layout = dstChannelsLayout_;
-  frame->format = dstSampleFormat_;
-  frame->sample_rate = dstSampleRate_;
+  frame->channel_layout = dst_channels_layout_;
+  frame->format = dst_sample_format_;
+  frame->sample_rate = dst_sample_rate_;
   int ret = av_frame_get_buffer(frame.get(), 0);
   if (ret < 0) {
-    LOG_INFO("%s cannot allocate audio data buffer", logtag_.c_str());
+    LOG_INFO("cannot allocate audio data buffer ", logtag_.c_str());
     return {};
   }
   return frame;

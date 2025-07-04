@@ -5,7 +5,16 @@
 
 class RTMPPacketBuilder {
 public:
-  RTMPPacketBuilder(uint32_t size) {
+  enum RTMPChannel {
+    RTMP_NETWORK_CHANNEL = 2, ///< channel for network-related messages
+                              ///< (bandwidth report, ping, etc)
+    RTMP_SYSTEM_CHANNEL,      ///< channel for sending server control messages
+    RTMP_AUDIO_CHANNEL,       ///< channel for audio data
+    RTMP_VIDEO_CHANNEL = 6,   ///< channel for video data
+    RTMP_SOURCE_CHANNEL = 8,  ///< channel for a/v invokes
+  };
+
+  RTMPPacketBuilder(uint32_t size = 1024) {
     RTMPPacket_Reset(&rtmpPacket_);
     RTMPPacket_Alloc(&rtmpPacket_, size);
   }
@@ -24,11 +33,6 @@ public:
 
   RTMPPacketBuilder &MessageType(uint32_t messageType) {
     rtmpPacket_.m_packetType = messageType;
-    return *this;
-  }
-
-  RTMPPacketBuilder &chunkMetadataChannel() {
-    rtmpPacket_.m_nChannel = RTMP_METADATA_CHANNEL;
     return *this;
   }
 

@@ -1,12 +1,11 @@
 #ifndef _RTMP_MESSAGE_FORMAT_BUILDER_H_
 #define _RTMP_MESSAGE_FORMAT_BUILDER_H_
 
-#include "RTMPMessage.h"
-
+#include "librtmp/rtmp.h"
 class RTMPMessageFormatBuilder {
 public:
   RTMPMessageFormatBuilder(uint32_t size = 1024) : bufferSize_(size) {
-    output_ = std::make_unique<int8_t[]>(bufferSize_);
+    output_ = std::make_unique<uint8_t[]>(bufferSize_);
     bufferOffset_ = 0;
   }
   ~RTMPMessageFormatBuilder() = default;
@@ -51,7 +50,7 @@ public:
     return *this;
   }
 
-  RTMPMessageFormatBuilder &put_amf_string(const int8_t *str) {
+  RTMPMessageFormatBuilder &put_amf_string(const char *str) {
     uint16_t len = strlen(str);
     put_be16(len);
     memcpy(output_.get() + bufferOffset_, str, len);
@@ -60,7 +59,7 @@ public:
   }
 
   RTMPMessageFormatBuilder &put_amf_double(double d) {
-    *output_.get() + bufferOffset_ = AMF_NUMBER; /* type: Number */
+    *(output_.get() + bufferOffset_) = AMF_NUMBER; /* type: Number */
     bufferOffset_++;
     uint8_t *ci, *co;
     ci = (uint8_t *)&d;
@@ -80,7 +79,7 @@ public:
 private:
   uint32_t bufferSize_;
   uint32_t bufferOffset_;
-  std::unique_ptr<int8_t[]> output_;
+  std::unique_ptr<uint8_t[]> output_;
 };
 
 #endif //_RTMP_MESSAGE_FORMAT_BUILDER_H_

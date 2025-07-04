@@ -1,23 +1,24 @@
 #ifndef _AV_TAG_DATA_BUILDER_H_
 #define _AV_TAG_DATA_BUILDER_H_
 
+#include <iterator>
 class AVTagDataBuilder {
 public:
   enum class ESoundFormat : uint8_t {
-    LinearPCMPlatformEndian = 0, // Êú¨Âú∞Â≠óËäÇÂ∫èÁöÑ PCM ÁºñÁ†Å
-    ADPCM = 1,                   // Flash ‰ΩøÁî®ÁöÑËá™ÂÆö‰πâ ADPCM
-    MP3 = 2,                     // MPEG Layer 3 Èü≥È¢ë
-    LinearPCMLittleEndian = 3,   // Â∞èÁ´ØÂ≠óËäÇÂ∫èÁöÑ PCM
-    Nellymoser16kMono = 4,       // 16kHz ÂçïÂ£∞ÈÅì Nellymoser
-    Nellymoser8kMono = 5,        // 8kHz ÂçïÂ£∞ÈÅì Nellymoser
+    LinearPCMPlatformEndian = 0, // ±æµÿ◊÷Ω⁄–Úµƒ PCM ±‡¬Î
+    ADPCM = 1,                   // Flash  π”√µƒ◊‘∂®“Â ADPCM
+    MP3 = 2,                     // MPEG Layer 3 “Ù∆µ
+    LinearPCMLittleEndian = 3,   // –°∂À◊÷Ω⁄–Úµƒ PCM
+    Nellymoser16kMono = 4,       // 16kHz µ•…˘µ¿ Nellymoser
+    Nellymoser8kMono = 5,        // 8kHz µ•…˘µ¿ Nellymoser
     Nellymoser = 6,              // Nellymoser
-    G711ALaw = 7,                // ITU-T G.711 A-law ÁºñÁ†Å
-    G711MuLaw = 8,               // ITU-T G.711 mu-law ÁºñÁ†Å
-    Reserved = 9,                // ‰øùÁïô
-    AAC = 10,                    // È´òÁ∫ßÈü≥È¢ëÁºñÁ†ÅÔºàAACÔºâ
-    Speex = 11,                  // Speex ËØ≠Èü≥ÁºñÁ†Å
+    G711ALaw = 7,                // ITU-T G.711 A-law ±‡¬Î
+    G711MuLaw = 8,               // ITU-T G.711 mu-law ±‡¬Î
+    Reserved = 9,                // ±£¡Ù
+    AAC = 10,                    // ∏ﬂº∂“Ù∆µ±‡¬Î£®AAC£©
+    Speex = 11,                  // Speex ”Ô“Ù±‡¬Î
     MP3_8kHz = 12,               // 8kHz MP3
-    DeviceSpecific = 13          // ËÆæÂ§á‰∏ìÁî®
+    DeviceSpecific = 13          // …Ë±∏◊®”√
   };
 
   enum class ESoundRate : uint8_t {
@@ -39,10 +40,10 @@ public:
 
   enum class EAudioObjectType : uint8_t {
     AAC_MAIN = 1,     // Main profile
-    AAC_LC = 2,       // Low Complexity profileÔºàÊúÄÂ∏∏Áî®Ôºâ
+    AAC_LC = 2,       // Low Complexity profile£®◊Ó≥£”√£©
     AAC_SSR = 3,      // Scalable Sample Rate profile
     AAC_LTP = 4,      // Long Term Prediction profile
-    SBR = 5,          // Spectral Band ReplicationÔºàÈÄöÂ∏∏Áî®‰∫é HE-AACÔºâ
+    SBR = 5,          // Spectral Band Replication£®Õ®≥£”√”⁄ HE-AAC£©
     AAC_SCALABLE = 6, // Scalable AAC
     TWINVQ = 7,       // TwinVQ
     CELP = 8,         // Code Excited Linear Prediction
@@ -66,9 +67,9 @@ public:
     ER_HILN = 26,
     ER_PARAMETRIC = 27,
     SSC = 28,
-    PS = 29, // Parametric StereoÔºàHE-AAC v2 ‰ΩøÁî®Ôºâ
+    PS = 29, // Parametric Stereo£®HE-AAC v2  π”√£©
     MPEG_SURROUND = 30,
-    ESCAPE = 31 // Ë°®Á§∫ÂÆûÈôÖÂÄºÂú®ÂêéÈù¢Êâ©Â±ïÂ≠óÊÆµ‰∏≠ÔºàÂ∞ëËßÅÔºâ
+    ESCAPE = 31 // ±Ì æ µº ÷µ‘⁄∫Û√Ê¿©’π◊÷∂Œ÷–£®…Ÿº˚£©
   };
 
   enum class ESamplingFrequencyIndex : uint8_t {
@@ -76,7 +77,7 @@ public:
     FREQ_88200_HZ = 1,
     FREQ_64000_HZ = 2,
     FREQ_48000_HZ = 3,
-    FREQ_44100_HZ = 4, // ÊúÄÂ∏∏ËßÅ
+    FREQ_44100_HZ = 4, // ◊Ó≥£º˚
     FREQ_32000_HZ = 5,
     FREQ_24000_HZ = 6,
     FREQ_22050_HZ = 7,
@@ -87,12 +88,12 @@ public:
     FREQ_7350_HZ = 12,
     RESERVED_13 = 13,
     RESERVED_14 = 14,
-    ESCAPE = 15 // Ë°®Á§∫ÂÆûÈôÖÈ¢ëÁéáÂú®ÂêéÁª≠Â≠óÊÆµ‰∏≠ÔºàÊûÅÂ∞ëËßÅÔºâ
+    ESCAPE = 15 // ±Ì æ µº ∆µ¬ ‘⁄∫Û–¯◊÷∂Œ÷–£®º´…Ÿº˚£©
   };
 
   enum class EChannelConfiguration : uint8_t {
     DEFINED_IN_AOT_SPECIFIC_CONFIG =
-        0,         // ‰∏çÂú®ËøôÈáåÊåáÂÆöÔºåÂÖ∑‰Ωì‰ø°ÊÅØÂú® Audio Object Type ÁöÑÊâ©Â±ïÂ≠óÊÆµ‰∏≠
+        0,         // ≤ª‘⁄’‚¿Ô÷∏∂®£¨æﬂÃÂ–≈œ¢‘⁄ Audio Object Type µƒ¿©’π◊÷∂Œ÷–
     MONO = 1,      // 1 channel: C (center)
     STEREO = 2,    // 2 channels: L + R
     THREE = 3,     // 3 channels: C + L + R
@@ -103,18 +104,18 @@ public:
   };
 
   enum class EFrameLengthFlag : uint8_t {
-    FRAME_1024_SAMPLES = 0, // ÊØèÂ∏ß 1024 ‰∏™ÈááÊ†∑ÁÇπÔºàÊ†áÂáÜÔºâ
-    FRAME_960_SAMPLES = 1   // ÊØèÂ∏ß 960 ‰∏™ÈááÊ†∑ÁÇπÔºà‰ΩéÂª∂ËøüÔºâ
+    FRAME_1024_SAMPLES = 0, // √ø÷° 1024 ∏ˆ≤…—˘µ„£®±Í◊º£©
+    FRAME_960_SAMPLES = 1   // √ø÷° 960 ∏ˆ≤…—˘µ„£®µÕ—”≥Ÿ£©
   };
 
   enum class EDependsOnCoreCoder : uint8_t {
-    NO_DEPENDENCY = 0,  // ‰∏ç‰æùËµñ‰ªª‰ΩïÊ†∏ÂøÉÁºñÁ†ÅÂô®ÔºàÂ∏∏ËßÅÔºâ
-    DEPENDS_ON_CORE = 1 // ‰æùËµñ‰∫éÊüê‰∏™ core coderÔºåÈúÄË¶ÅÂè¶‰∏Ä‰∏™ stream Ëß£Á†Å
+    NO_DEPENDENCY = 0,  // ≤ª“¿¿µ»Œ∫Œ∫À–ƒ±‡¬Î∆˜£®≥£º˚£©
+    DEPENDS_ON_CORE = 1 // “¿¿µ”⁄ƒ≥∏ˆ core coder£¨–Ë“™¡Ì“ª∏ˆ stream Ω‚¬Î
   };
 
   enum class ExtensionFlag : uint8_t {
-    NO_EXTENSION = 0, // Ê≤°ÊúâÊâ©Â±ïÂ≠óÊÆµÔºàÊúÄÂ∏∏ËßÅÔºâ
-    HAS_EXTENSION = 1 // ÂêéÈù¢ÊúâÊâ©Â±ïÂ≠óÊÆµÔºåÈúÄËß£ÊûêÊõ¥Â§öÊï∞ÊçÆ
+    NO_EXTENSION = 0, // √ª”–¿©’π◊÷∂Œ£®◊Ó≥£º˚£©
+    HAS_EXTENSION = 1 // ∫Û√Ê”–¿©’π◊÷∂Œ£¨–ËΩ‚Œˆ∏¸∂‡ ˝æ›
   };
 
   enum class FrameType {
@@ -135,9 +136,9 @@ public:
     AVC
   };
 
-  enum class AVCPacketType : uint8_t {
-    SEQUENCE_HEADER = 0, // Â∫èÂàóÂ§¥ÔºàÂåÖÂê´ AVCDecoderConfigurationRecordÔºâ
-    NALU = 1,            // Ê≠£Â∏∏ÁöÑ NALUÔºàÂéãÁº©Â∏ßÔºöI/P/BÂ∏ßÁ≠âÔºâ
+  enum class AVPacketType : uint8_t {
+    SEQUENCE_HEADER = 0, // –Ú¡–Õ∑£®∞¸∫¨ AVCDecoderConfigurationRecord£©
+    NALU = 1,            // ’˝≥£µƒ NALU£®—πÀı÷°£∫I/P/B÷°µ»£©
   };
 
   AVTagDataBuilder() : size_(1024) { data_.reserve(size_); }
@@ -153,9 +154,8 @@ public:
     return *this;
   }
 
-  AVTagDataBuilder &
-  setAVCPacketType(AVTagDataBuilder::AVCPacketType packetType) {
-    AVCPacketType_ = packetType;
+  AVTagDataBuilder &setAVPacketType(AVTagDataBuilder::AVPacketType packetType) {
+    AVPacketType_ = packetType;
     return *this;
   }
 
@@ -203,7 +203,12 @@ public:
     return *this;
   }
 
-  AVTagDataBuilder &setPpsLength(uint8_t length) {
+  AVTagDataBuilder &setNumOfPps(uint8_t num) {
+    numOfPps_ = num;
+    return *this;
+  }
+
+  AVTagDataBuilder &setPpsLength(uint32_t length) {
     ppsLength_[0] = (length >> 8) & 0xff;
     ppsLength_[1] = length & 0xff;
     return *this;
@@ -283,7 +288,7 @@ public:
     return *this;
   }
 
-  AVTagDataBuilder &setExtensionFlag(EExtensionFlag extensionFlag) {
+  AVTagDataBuilder &setExtensionFlag(ExtensionFlag extensionFlag) {
     extensionFlag_ = static_cast<uint8_t>(extensionFlag);
     return *this;
   }
@@ -304,20 +309,21 @@ public:
     tag |= (frameLengthFlag_ & 0x01) << 2;      // 1 bit
     tag |= (dependsOnCoreCoder_ & 0x01) << 1;   // 1 bit
     tag |= (extensionFlag_ & 0x01);             // 1 bit
-    data_.emplace_back(tag >> 8);               // È´ò8‰Ωç
-    data_.emplace_back(tag & 0xFF);             // ‰Ωé8‰Ωç
+    data_.emplace_back(tag >> 8);               // ∏ﬂ8Œª
+    data_.emplace_back(tag & 0xFF);             // µÕ8Œª
   }
 
   void buildAudioRawData() {
     data_.emplace_back(soundFormat_ << 4 | soundRate_ << 2 | soundSize_ << 1 |
                        soundType_);
-    data_.emplace_back(AVCPacketType_);
+    data_.emplace_back(static_cast<uint8_t>(AVPacketType_));
     std::copy_n(audioData_, audioDataSize_, std::back_inserter(data_));
   }
 
   void buildVideoRawData() {
-    data_.emplace_back(frameType_ << 4 | codecID_);
-    data_.emplace_back(AVCPacketType_);
+    data_.emplace_back(static_cast<int>(frameType_) << 4 |
+                       static_cast<int>(codecID_));
+    data_.emplace_back(static_cast<uint8_t>(AVPacketType_));
     std::copy_n(CompositionTime_, sizeof(CompositionTime_),
                 std::back_inserter(data_));
     std::copy_n(naluLength_, sizeof(naluLength_), std::back_inserter(data_));
@@ -325,8 +331,9 @@ public:
   }
 
   void build() {
-    data_.emplace_back(frameType_ << 4 | codecID_);
-    data_.emplace_back(AVCPacketType_);
+    data_.emplace_back(static_cast<int>(frameType_) << 4 |
+                       static_cast<int>(codecID_));
+    data_.emplace_back(static_cast<uint8_t>(AVPacketType_));
     std::copy_n(CompositionTime_, sizeof(CompositionTime_),
                 std::back_inserter(data_));
     data_.emplace_back(configurationVersion_);
@@ -337,7 +344,7 @@ public:
     data_.emplace_back(numOfSps_);
     std::copy_n(spsLength_, sizeof(spsLength_), std::back_inserter(data_));
     std::copy_n(spsData_, spsDataSize_, std::back_inserter(data_));
-    data_.emplace_back(numOfpps_);
+    data_.emplace_back(numOfPps_);
     std::copy_n(ppsLength_, sizeof(ppsLength_), std::back_inserter(data_));
     std::copy_n(ppsData_, ppsDataSize_, std::back_inserter(data_));
   }
@@ -346,11 +353,12 @@ public:
   uint8_t *data() { return data_.data(); }
 
 private:
+  uint32_t size_;
   std::vector<uint8_t> data_;
   // video tag data
-  CodecId codecID_ : 4;     // ‰Ωé4‰Ωç
-  FrameType frameType_ : 4; // È´ò4‰Ωç
-  AVCPacketType AVCPacketType_;
+  CodecId codecID_ : 4;     // µÕ4Œª
+  FrameType frameType_ : 4; // ∏ﬂ4Œª
+  AVPacketType AVPacketType_;
   uint8_t CompositionTime_[3];
   uint8_t configurationVersion_;
   uint8_t AVCProfileIndication_;

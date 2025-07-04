@@ -17,7 +17,7 @@ public:
   void setConnectionTimeout(int timeout) { rtmp_->Link.timeout = timeout; }
 
   bool setUrl(const std::string &url) {
-    if (RTMP_SetupURL(rtmp_, url.c_str()) < 0) {
+    if (RTMP_SetupURL(rtmp_, const_cast<char *>(url.c_str())) < 0) {
       return false;
     }
     return true;
@@ -25,9 +25,9 @@ public:
 
   void setLive(bool live) {
     if (live) {
-      rtmp_->Link.lFlags |= RTMP_LF_LIVE; // è®¾ç½®ä¸ºç›´æ’­æµ
+      rtmp_->Link.lFlags |= RTMP_LF_LIVE; // ÉèÖÃÎªÖ±²¥Á÷
     } else {
-      rtmp_->Link.lFlags &= ~RTMP_LF_LIVE; // å–æ¶ˆç›´æ’­æµè®¾ç½®
+      rtmp_->Link.lFlags &= ~RTMP_LF_LIVE; // È¡ÏûÖ±²¥Á÷ÉèÖÃ
     }
   }
 

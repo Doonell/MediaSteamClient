@@ -1,11 +1,21 @@
 #include "AACEncoder.h"
-#include "Logger/Logger.h"
+#include "../Logger/Logger.h"
 
 namespace Encoder {
+
 AACEncoder::AACEncoder(int sample_rate, int channels, int bitrate,
                        int channel_layout)
     : sample_rate_(sample_rate), channels_(channels), bitrate_(bitrate),
       channel_layout_(channel_layout) {}
+
+AACEncoder::~AACEncoder() {
+  if (ctx_) {
+    avcodec_free_context(&ctx_);
+  }
+  if (frame_) {
+    av_frame_free(&frame_);
+  }
+}
 
 bool AACEncoder::init() {
   // locate the encoder
@@ -45,11 +55,11 @@ bool AACEncoder::init() {
   frame_->format = ctx_->sample_fmt;
   frame_->channel_layout = ctx_->channel_layout;
   frame_->channels = ctx_->channels;
-  av_frame_get_buffer(ctx_, frame_, 0);
+  av_frame_get_buffer(frame_, 0);
   return true;
 }
 
-int AACEncoder::encode(AVFrame *frame, uint8_t *out, int out_len) {
+int32_t AACEncoder::encode(AVFrame *frame, uint8_t *out, int out_len) {
   int got_output = 0;
 
   AVPacket pkt;

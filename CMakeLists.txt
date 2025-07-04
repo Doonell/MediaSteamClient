@@ -13,12 +13,28 @@ set(SDL_INCLUDE_DIR "${3RDPARTY_DIR}/SDL2/include")
 set(SDL_LIB_DIR "${3RDPARTY_DIR}/SDL2/lib/x64")
 set(LIBRTMP_LIB_DIR "${3RDPARTY_DIR}/librtmp")
 
-file(GLOB SOURCES "*.cpp")
+file(GLOB_RECURSE SOURCES
+    "${CMAKE_SOURCE_DIR}/Configuration/*.cpp"
+    "${CMAKE_SOURCE_DIR}/Decoder/*.cpp"
+    "${CMAKE_SOURCE_DIR}/Encoder/*.cpp"
+    "${CMAKE_SOURCE_DIR}/Message/*.cpp"
+    "${CMAKE_SOURCE_DIR}/MiddleWare/*.cpp"
+    "${CMAKE_SOURCE_DIR}/TransProtocol/*.cpp"
+    "${CMAKE_SOURCE_DIR}/Utils/*.cpp"
+    "${CMAKE_SOURCE_DIR}/Logger/*.cpp"
+    "${CMAKE_SOURCE_DIR}/Source/*.cpp"
+)
 
+message(STATUS "Source files: ${SOURCES}")
 # 添加 librtmp 子目录
 add_subdirectory(${LIBRTMP_LIB_DIR})
 
-add_executable(ZHMedia ${SOURCES})
+add_executable(ZHMedia main.cpp)
+
+target_sources(ZHMedia
+    PRIVATE
+    ${SOURCES}
+)
 
 include(GNUInstallDirs)
 install(TARGETS ZHMedia
@@ -34,7 +50,7 @@ include_directories(
     ${FFMPEG_INCLUDE_DIR}
     ${SDL_INCLUDE_DIR}
 )
-
+target_include_directories(ZHMedia PRIVATE ${CMAKE_SOURCE_DIR}/3rdParty)
 # 链接库文件
 target_link_libraries(ZHMedia PRIVATE
     rtmp

@@ -1,36 +1,37 @@
 #include "JsonFileReader.h"
 #include "ConfigurationBuilder.h"
-
-namespace Configration {
+#include <fstream>
+#include <iostream>
+namespace Configuration {
 
 JsonFileReader::JsonFileReader(const std::string &filePath)
     : filePath_(filePath) {}
-
-JsonFileReader::~JsonFileReader() {}
 
 std::string JsonFileReader::get_value(const std::string &line) {
   auto pos1 = line.find(':');
   if (pos1 == std::string::npos)
     return "";
+
   auto pos2 = line.find_first_of("\"0123456789", pos1 + 1);
   if (pos2 == std::string::npos)
     return "";
   auto pos3 = line.find_first_of(",}", pos2);
   std::string val = line.substr(pos2, pos3 - pos2);
-  // å»é™¤å¼•å·å’Œç©ºæ ¼
+  // È¥³ıÒıºÅºÍ¿Õ¸ñ
   val.erase(remove(val.begin(), val.end(), '"'), val.end());
   val.erase(0, val.find_first_not_of(" \t"));
   val.erase(val.find_last_not_of(" \t") + 1);
   return val;
 }
 
-const std::shared_ptr<IConfigurationFacade> JsonFileReader::parse() const {
-  // è§£æ JSON æ–‡ä»¶å¹¶è¿”å› IConfigurationFacade å®ä¾‹
+const std::shared_ptr<IConfigurationFacade> JsonFileReader::parse() {
+  // ½âÎö JSON ÎÄ¼ş²¢·µ»Ø IConfigurationFacade ÊµÀı
   std::shared_ptr<ConfigurationBuilder> configBuilder =
       std::make_shared<ConfigurationBuilder>();
   std::string line, section;
+  std::ifstream file(filePath_);
   while (std::getline(file, line)) {
-    // å»é™¤å‰åç©ºæ ¼
+    // È¥³ıÇ°ºó¿Õ¸ñ
     line.erase(0, line.find_first_not_of(" \t"));
     line.erase(line.find_last_not_of(" \t\r\n") + 1);
 
@@ -60,7 +61,7 @@ const std::shared_ptr<IConfigurationFacade> JsonFileReader::parse() const {
       configBuilder->set(key, value);
     }
   }
-  // è¯»å–æ–‡ä»¶å†…å®¹å¹¶å¡«å…… config
+  // ¶ÁÈ¡ÎÄ¼şÄÚÈİ²¢Ìî³ä config
   return configBuilder;
 }
-} // namespace Configration
+} // namespace Configuration
