@@ -18,22 +18,24 @@ enum EFLV_CODECID {
 };
 class RTMPProtocol : public IRTMPProtocol {
 public:
-  RTMPProtocol(const std::string &url, int streamId, bool enableVideo = true,
+  RTMPProtocol(const std::string &url, bool enableVideo = true,
                bool enableAudio = true)
       : url_(url), enable_video_(enableVideo), enable_audio_(enableAudio) {}
-  ~RTMPProtocol() = default;
+  ~RTMPProtocol();
 
+  bool init() override;
   bool connect() override;
   bool isConnected() override;
   int sendMetaData(double width, double height, double framerate,
                    double videodatarate, double audiodatarate,
                    double audiosamplerate, double audiosamplesize,
                    double channels) override;
-  void sendAudioSpecificConfig(uint8_t *data, int size) override;
+  void sendAudioSpecificConfig(uint8_t profile, uint8_t channels,
+                               uint32_t sample_rate) override;
   int sendAudioRawData(uint8_t *data, int size) override;
   int sendH264SequenceHeader(uint8_t *sps, uint32_t sps_size, uint8_t *pps,
                              uint32_t pps_size) override;
-  int sendH264RawData(EFrameType frameType, uint8_t *data, int size) override;
+  int sendH264RawData(bool isKeyFrame, uint8_t *data, int size) override;
   int sendPacket(unsigned int packet_type, unsigned char *data,
                  unsigned int size, int64_t timestamp) override;
 

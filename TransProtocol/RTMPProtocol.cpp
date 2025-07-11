@@ -7,11 +7,40 @@
 #include "RTMPPacketBuilder.h"
 namespace TransProtocol {
 
-bool RTMPProtocol::isConnected() { return RTMP_IsConnected(rtmpHolder_.get()); }
+RTMPProtocol::~RTMPProtocol() {
+  if (rtmpHolder_.get()) {
+    RTMP_Close(rtmpHolder_.get());
+  }
+
+  if (isConnected()) {
+    RTMP_Close(rtmpHolder_.get());
+  }
+
+#ifdef WIN32
+  WSACleanup();
+#endif // WIN32
+}
+
+bool RTMPProtocol::init() {
+  bool ret_code = true;
+#ifdef WIN32
+  WORD version;
+  WSADATA wsaData;
+  version = MAKEWORD(1, 1);
+  ret_code = (WSAStartup(version, &wsaData) == 0) ? true : false;
+#endif
+  if (!ret_code) {
+    LOG_ERROR("WSAStartup failed");
+    return false;
+  }
+
+  return ret_code;
+}
 
 bool RTMPProtocol::connect() {
   LOG_INFO("base begin connect");
-
+  std::cout << "base begin connect \n";
+  init();
   rtmpHolder_.setConnectionTimeout(10);
   if (!rtmpHolder_.setUrl(url_)) {
     LOG_INFO("RTMP_SetupURL failed");
@@ -24,11 +53,11 @@ bool RTMPProtocol::connect() {
   if (rtmp_obj_type_ == RTMP_BASE_TYPE_PUSH)
     RTMP_EnableWrite(rtmpHolder_.get());
   if (!RTMP_Connect(rtmpHolder_.get(), NULL)) {
-    LOG_INFO("RTMP_Connect failed!");
+    std::cout << "RTMP_Connect failed! \n";
     return false;
   }
   if (!RTMP_ConnectStream(rtmpHolder_.get(), 0)) {
-    LOG_INFO("RTMP_ConnectStream failed");
+    std::cout << "RTMP_ConnectStream failed\n";
     return false;
   }
   // 判断是否打开音视频,默认打开
@@ -44,6 +73,8 @@ bool RTMPProtocol::connect() {
   return true;
 }
 
+bool RTMPProtocol::isConnected() { return RTMP_IsConnected(rtmpHolder_.get()); }
+
 int RTMPProtocol::sendMetaData(double width, double height, double framerate,
                                double videodatarate, double audiodatarate,
                                double audiosamplerate, double audiosamplesize,
@@ -51,6 +82,7 @@ int RTMPProtocol::sendMetaData(double width, double height, double framerate,
   RTMPMessageFormatBuilder metaBuilder;
   metaBuilder.put_byte(AMF_STRING)
       .put_amf_string("@setDataFrame")
+      .put_byte(AMF_STRING)
       .put_amf_string("onMetaData")
       .put_byte(AMF_OBJECT)
       .put_amf_string("copyright")
@@ -66,24 +98,25 @@ int RTMPProtocol::sendMetaData(double width, double height, double framerate,
       .put_amf_double(videodatarate)
       .put_amf_string("videocodecid")
       .put_amf_double(FLV_CODECID_H264)
-      .put_amf_string("audiodatarate")
-      .put_amf_double(audiodatarate)
-      .put_amf_string("audiosamplerate")
-      .put_amf_double(audiosamplerate)
-      .put_amf_string("audiosamplesize")
-      .put_amf_double(audiosamplesize)
-      .put_amf_string("stereo")
-      .put_amf_double(channles)
-      .put_amf_string("audiocodecid")
-      .put_amf_double(FLV_CODECID_AAC)
+      // .put_amf_string("audiodatarate")
+      // .put_amf_double(audiodatarate)
+      // .put_amf_string("audiosamplerate")
+      // .put_amf_double(audiosamplerate)
+      // .put_amf_string("audiosamplesize")
+      // .put_amf_double(audiosamplesize)
+      // .put_amf_string("stereo")
+      // .put_amf_double(channles)
+      // .put_amf_string("audiocodecid")
+      // .put_amf_double(FLV_CODECID_AAC)
       .put_amf_string("")
       .put_byte(AMF_OBJECT_END);
-
+  metaBuilder.showAll();
   return sendPacket(RTMP_PACKET_TYPE_INFO, metaBuilder.data(),
                     metaBuilder.size(), 0);
 }
 
-void RTMPProtocol::sendAudioSpecificConfig(uint8_t *data, int size) {
+void RTMPProtocol::sendAudioSpecificConfig(uint8_t profile, uint8_t channels,
+                                           uint32_t sample_rate) {
   AVTagDataBuilder audioSpecificConfig;
 
   audioSpecificConfig
@@ -93,11 +126,12 @@ void RTMPProtocol::sendAudioSpecificConfig(uint8_t *data, int size) {
       .setSoundType(AVTagDataBuilder::ESoundType::SoundStereo)    // Stereo
       .setAVPacketType(AVTagDataBuilder::AVPacketType::
                            SEQUENCE_HEADER) // AudioSpecificConfig
-      .setAudioObjectType(AVTagDataBuilder::EAudioObjectType::AAC_LC) // AAC LC
-      .setSamplingFreqIndex(
-          AVTagDataBuilder::ESamplingFrequencyIndex::FREQ_44100_HZ) // 44.1KHz
+      .setAudioObjectType(
+          static_cast<AVTagDataBuilder::EAudioObjectType>(profile)) // AAC LC
+      .setSamplingFreqIndex(sample_rate)                            // 44.1KHz
       .setChannelConfiguration(
-          AVTagDataBuilder::EChannelConfiguration::STEREO) // Stereo
+          static_cast<AVTagDataBuilder::EChannelConfiguration>(
+              channels)) // Stereo
       .setFrameLengthFlag(
           AVTagDataBuilder::EFrameLengthFlag::FRAME_1024_SAMPLES)
       .setDependsOnCoreCoder(
@@ -156,6 +190,7 @@ int RTMPProtocol::sendH264SequenceHeader(uint8_t *sps, uint32_t sps_size,
   AVTagDataBuilder h264SeqenceHeader;
   h264SeqenceHeader.setCodecId(AVTagDataBuilder::CodecId::AVC)
       .setFrameType(AVTagDataBuilder::FrameType::Keyframe)
+      .setAVPacketType(AVTagDataBuilder::AVPacketType::SEQUENCE_HEADER)
       .setCompositionTime(0)
       .setConfigurationVersion(1)
       .setAVCProfileIndication(sps[1])
@@ -174,11 +209,11 @@ int RTMPProtocol::sendH264SequenceHeader(uint8_t *sps, uint32_t sps_size,
                     h264SeqenceHeader.size(), 0);
 }
 
-int RTMPProtocol::sendH264RawData(EFrameType frameType, uint8_t *nalu,
+int RTMPProtocol::sendH264RawData(bool isKeyFrameType, uint8_t *nalu,
                                   int nalu_size) {
   AVTagDataBuilder h264TagData;
 
-  if (frameType == EFrameType::KeyFrame) {
+  if (isKeyFrameType) {
     h264TagData.setFrameType(AVTagDataBuilder::FrameType::Keyframe); // I 帧
   } else {
     h264TagData.setFrameType(

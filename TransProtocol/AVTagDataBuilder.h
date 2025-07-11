@@ -265,6 +265,11 @@ public:
     return *this;
   }
 
+  AVTagDataBuilder &setSamplingFreqIndex(int samplingFreqIndex) {
+    mapFrequencyIndexToSamplingFreqIndex(samplingFreqIndex);
+    return *this;
+  }
+
   AVTagDataBuilder &
   setSamplingFreqIndex(ESamplingFrequencyIndex samplingFreqIndex) {
     samplingFreqIndex_ = static_cast<uint8_t>(samplingFreqIndex);
@@ -351,6 +356,68 @@ public:
 
   uint32_t size() const { return static_cast<uint32_t>(data_.size()); }
   uint8_t *data() { return data_.data(); }
+
+private:
+  void mapFrequencyIndexToSamplingFreqIndex(int samplerate) {
+    switch (samplerate) {
+    case 96000:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_96000_HZ);
+      break;
+    case 88200:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_88200_HZ);
+      break;
+    case 64000:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_64000_HZ);
+      break;
+    case 48000:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_48000_HZ);
+      break;
+    case 44100:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_44100_HZ);
+      break;
+    case 32000:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_32000_HZ);
+      break;
+    case 24000:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_24000_HZ);
+      break;
+    case 22050:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_22050_HZ);
+      break;
+    case 16000:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_16000_HZ);
+      break;
+    case 12000:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_12000_HZ);
+      break;
+    case 11025:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_11025_HZ);
+      break;
+    case 8000:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_8000_HZ);
+      break;
+    case 7350:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_7350_HZ);
+      break;
+    default:
+      samplingFreqIndex_ =
+          static_cast<uint8_t>(ESamplingFrequencyIndex::FREQ_96000_HZ);
+      break;
+    }
+  }
 
 private:
   uint32_t size_;

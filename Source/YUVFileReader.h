@@ -19,20 +19,26 @@ class YUVFileReader {
 public:
   YUVFileReader(const std::string &yuvFilepath,
                 int pixelFormat = AV_PIX_FMT_YUV420P, uint32_t fps = 25,
-                uint32_t width = 1920, uint32_t height = 1080);
+                uint32_t width = 720, uint32_t height = 480);
   ~YUVFileReader();
 
   bool init();
 
   template <typename Callback> void start(Callback handleYUV) {
     LOG_INFO("into loop");
-
+    /*
+    Y: width ¡Á height
+    U: width ¡Á height / 4
+    V: width ¡Á height / 4
+    ºÏ¼Æ£ºwidth ¡Á height ¡Á (1 + 0.25 + 0.25) = width ¡Á height ¡Á 1.5
+    */
     yuv_buf_size = width_ * height_ * 1.5;
     yuv_buf_ = new uint8_t[yuv_buf_size];
 
     yuv_total_duration_ = 0;
     yuv_start_time_ = Time::TimesUtil::GetTimeMillisecond();
     LOG_INFO("into loop while");
+
     while (true) {
       if (request_exit_)
         break;

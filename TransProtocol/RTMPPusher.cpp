@@ -80,28 +80,7 @@ namespace TransProtocol {
 // }
 
 template <typename Container>
-void RTMPPusher<Container>::handleMessage(VideoSequenceMessage &msg) {
-  rtmpProtocol_->sendH264SequenceHeader(msg->sps_, msg->sps_size_, msg->pps_,
-                                        msg->pps_size_);
-}
-
-template <typename Container>
-void RTMPPusher<Container>::handleMessage(H264RawMessage &msg) {
-  rtmpProtocol_->sendH264RawData(msg->data_, msg->size_);
-}
-
-template <typename Container>
-void RTMPPusher<Container>::handleMessage(AudioSpecificConfigMessage &msg) {
-  rtmpProtocol_->sendAudioSpecificConfig(msg->data_, msg->size_);
-}
-
-template <typename Container>
-void RTMPPusher<Container>::handleMessage(AudioRawDataMessage &msg) {
-  rtmpProtocol_->sendAudioRawData(msg->data_, msg->size_, msg->timestamp_);
-}
-
-template <typename Container>
-bool RTMPPusher<Container>::sendMetadata(FLVMetaMessage &metadata) {
+bool RTMPPusher<Container>::sendMetadata(const FLVMetaMessage &metadata) {
   return rtmpProtocol_->sendMetaData(
       metadata->width, metadata->height, metadata->framerate,
       metadata->videodatarate, metadata->audiodatarate,

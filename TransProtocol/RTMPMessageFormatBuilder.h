@@ -2,6 +2,8 @@
 #define _RTMP_MESSAGE_FORMAT_BUILDER_H_
 
 #include "librtmp/rtmp.h"
+#include <iomanip>  // std::hex, std::setw, std::setfill
+
 class RTMPMessageFormatBuilder {
 public:
   RTMPMessageFormatBuilder(uint32_t size = 1024) : bufferSize_(size) {
@@ -17,6 +19,7 @@ public:
   RTMPMessageFormatBuilder &put_byte(uint8_t nVal) {
     output_[bufferOffset_] = nVal;
     bufferOffset_++;
+    showAll();
     return *this;
   }
 
@@ -55,6 +58,7 @@ public:
     put_be16(len);
     memcpy(output_.get() + bufferOffset_, str, len);
     bufferOffset_ += len;
+    showAll();
     return *this;
   }
 
@@ -74,6 +78,20 @@ public:
     co[7] = ci[0];
     bufferOffset_ += 8;
     return *this;
+  }
+
+  void showAll() {
+      //// 打印前 n 个值
+      //size_t n = bufferOffset_;  // 你要打印的数量
+      //for (size_t i = 0; i < n; i++) {
+      //    uint8_t val = output_[i];
+      //    std::cout << "output_[" << i << "] = "
+      //        << "char: '" << (std::isprint(val) ? static_cast<char>(val) : '.') << "', "
+      //        << "hex: 0x"
+      //        << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(val)
+      //        << std::dec << std::endl;
+      //}
+      //std::cout << "----------------------------" << std::endl;
   }
 
 private:

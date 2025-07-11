@@ -7,7 +7,9 @@ namespace Encoder {
 H264Encoder::H264Encoder(int width, int height, int fps, int bitrate, int gop,
                          int b_frames)
     : width_(width), height_(height), fps_(fps), bitrate_(bitrate), gop_(gop),
-      b_frames_(b_frames) {}
+      b_frames_(b_frames) {
+  codec_ = nullptr;
+}
 
 bool H264Encoder::init() {
   std::cout << "libavcodec version:" << avcodec_version() << std::endl;
@@ -16,10 +18,10 @@ bool H264Encoder::init() {
   int minor = (version >> 8) & 0xFF;
   int micro = version & 0xFF;
   std::printf("libavcodec version: %d.%d.%d\n", major, minor, micro);
-  print_all_encoders();
-  // å¯»æ‰¾ç¼–ç å™¨
+
+  // Ñ°ÕÒ±àÂëÆ÷
   codec_ = avcodec_find_encoder(AV_CODEC_ID_H264);
-  if (codec_ == NULL) {
+  if (codec_ == nullptr) {
     std::cout << "Can not find encoder!" << std::endl;
     return false;
   }
@@ -31,35 +33,35 @@ bool H264Encoder::init() {
 
   // Param that must set
 
-  // æœ€å¤§å’Œæœ€å°é‡åŒ–ç³»æ•°ï¼Œå–å€¼èŒƒå›´ä¸º0~51ã€‚
+  // ×î´óºÍ×îĞ¡Á¿»¯ÏµÊı£¬È¡Öµ·¶Î§Îª0~51¡£
   ctx_->qmin = 10;
   ctx_->qmax = 31;
 
-  // ç¼–ç åçš„è§†é¢‘å¸§å¤§å°ï¼Œä»¥åƒç´ ä¸ºå•ä½ã€‚
+  // ±àÂëºóµÄÊÓÆµÖ¡´óĞ¡£¬ÒÔÏñËØÎªµ¥Î»¡£
   ctx_->width = width_;
   ctx_->height = height_;
 
-  // ç¼–ç åçš„ç ç‡ï¼šå€¼è¶Šå¤§è¶Šæ¸…æ™°ï¼Œå€¼è¶Šå°è¶Šæµç•…ã€‚
+  // ±àÂëºóµÄÂëÂÊ£ºÖµÔ½´óÔ½ÇåÎú£¬ÖµÔ½Ğ¡Ô½Á÷³©¡£
   ctx_->bit_rate = bitrate_;
 
-  // æ¯20å¸§æ’å…¥ä¸€ä¸ªIå¸§
+  // Ã¿20Ö¡²åÈëÒ»¸öIÖ¡
   ctx_->gop_size = gop_;
 
-  // å¸§ç‡çš„åŸºæœ¬å•ä½ï¼Œtime_base.numä¸ºæ—¶é—´çº¿åˆ†å­ï¼Œtime_base.denä¸ºæ—¶é—´çº¿åˆ†æ¯ï¼Œå¸§ç‡=åˆ†å­/åˆ†æ¯ã€‚
+  // Ö¡ÂÊµÄ»ù±¾µ¥Î»£¬time_base.numÎªÊ±¼äÏß·Ö×Ó£¬time_base.denÎªÊ±¼äÏß·ÖÄ¸£¬Ö¡ÂÊ=·Ö×Ó/·ÖÄ¸¡£
   ctx_->time_base.num = 1;
   ctx_->time_base.den = fps_;
 
   ctx_->framerate.num = fps_;
   ctx_->framerate.den = 1;
 
-  // å›¾åƒè‰²å½©ç©ºé—´çš„æ ¼å¼ï¼Œé‡‡ç”¨ä»€ä¹ˆæ ·çš„è‰²å½©ç©ºé—´æ¥è¡¨æ˜ä¸€ä¸ªåƒç´ ç‚¹ã€‚
+  // Í¼ÏñÉ«²Ê¿Õ¼äµÄ¸ñÊ½£¬²ÉÓÃÊ²Ã´ÑùµÄÉ«²Ê¿Õ¼äÀ´±íÃ÷Ò»¸öÏñËØµã¡£
   ctx_->pix_fmt = AV_PIX_FMT_YUV420P;
 
-  // ç¼–ç å™¨ç¼–ç çš„æ•°æ®ç±»å‹
+  // ±àÂëÆ÷±àÂëµÄÊı¾İÀàĞÍ
   ctx_->codec_type = AVMEDIA_TYPE_VIDEO;
 
   // Optional Param
-  // ä¸¤ä¸ªéBå¸§ä¹‹é—´å…è®¸å‡ºç°å¤šå°‘ä¸ªBå¸§æ•°ï¼Œè®¾ç½®0è¡¨ç¤ºä¸ä½¿ç”¨Bå¸§ï¼Œæ²¡æœ‰ç¼–ç å»¶æ—¶ã€‚Bå¸§è¶Šå¤šï¼Œå‹ç¼©ç‡è¶Šé«˜ã€‚
+  // Á½¸ö·ÇBÖ¡Ö®¼äÔÊĞí³öÏÖ¶àÉÙ¸öBÖ¡Êı£¬ÉèÖÃ0±íÊ¾²»Ê¹ÓÃBÖ¡£¬Ã»ÓĞ±àÂëÑÓÊ±¡£BÖ¡Ô½¶à£¬Ñ¹ËõÂÊÔ½¸ß¡£
   ctx_->max_b_frames = b_frames_;
 
   if (ctx_->codec_id == AV_CODEC_ID_H264) {
@@ -71,18 +73,18 @@ bool H264Encoder::init() {
     av_dict_set(&param, "tune", "zero-latency", 0);
   }
 
-  ctx_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; // extradataæ‹·è´ sps pps
-  // åˆå§‹åŒ–è§†éŸ³é¢‘ç¼–ç å™¨çš„AVCodecContext
+  ctx_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER; // extradata¿½±´ sps pps
+  // ³õÊ¼»¯ÊÓÒôÆµ±àÂëÆ÷µÄAVCodecContext
   if (avcodec_open2(ctx_, codec_, &param) < 0) {
     printf("Failed to open encoder! \n");
   }
-  // è¯»å–sps pps ä¿¡æ¯
+  // ¶ÁÈ¡sps pps ĞÅÏ¢
   if (ctx_->extradata) {
     LOG_INFO("extradata_size: " << ctx_->extradata_size);
-    // ç¬¬ä¸€ä¸ªä¸ºsps 7
-    // ç¬¬äºŒä¸ªä¸ºpps 8
+    // µÚÒ»¸öÎªsps 7
+    // µÚ¶ş¸öÎªpps 8
 
-    uint8_t *sps = ctx_->extradata + 4; // ç›´æ¥è·³åˆ°æ•°æ®
+    uint8_t *sps = ctx_->extradata + 4; // Ö±½ÓÌøµ½Êı¾İ
     int sps_len = 0;
     uint8_t *pps = NULL;
     int pps_len = 0;
@@ -94,7 +96,7 @@ bool H264Encoder::init() {
         break;
       }
     }
-    sps_len = int(pps - sps) - 4; // 4æ˜¯00 00 00 01å ç”¨çš„å­—èŠ‚
+    sps_len = int(pps - sps) - 4; // 4ÊÇ00 00 00 01Õ¼ÓÃµÄ×Ö½Ú
     pps_len = ctx_->extradata_size - 4 * 2 - sps_len;
     sps_.append(sps, sps + sps_len);
     pps_.append(pps, pps + pps_len);
@@ -116,7 +118,7 @@ bool H264Encoder::init() {
   av_new_packet(&packet_, pictureSize);
   data_size_ = ctx_->width * ctx_->height;
 
-  return 0;
+  return true;
 }
 
 H264Encoder::~H264Encoder() {
@@ -126,54 +128,54 @@ H264Encoder::~H264Encoder() {
     av_free(frame_);
   if (picture_buf_)
     av_free(picture_buf_);
-  //av_free_packet(&packet_);
+  av_free_packet(&packet_);
 }
 
-void H264Encoder::initByName()
-{
-    const AVCodec* codec = avcodec_find_encoder_by_name("libx264");
-    if (!codec) {
-        fprintf(stderr, "Could not find encoder: libx264\n");
+const AVCodec *
+H264Encoder::find_encoder_by_name(const std::string &codec_name) {
+  const AVCodec *codec = nullptr;
+  void *iter = nullptr;
+  while ((codec = av_codec_iterate(&iter))) {
+    if (av_codec_is_encoder(codec) && codec_name == codec->name) {
+      printf("Encoder: %s\n", codec->name);
+      return codec;
     }
-}
-
-void H264Encoder::print_all_encoders() {
-    const AVCodec* codec = nullptr;
-    void* iter = nullptr;
-    while ((codec = av_codec_iterate(&iter))) {
-        if (av_codec_is_encoder(codec)) {
-            printf("Encoder: %s\n", codec->name);
-        }
-    }
-}
-
-int H264Encoder::encode(uint8_t *in, uint32_t in_samples, uint8_t *out,
-                        uint32_t &out_size) {
-  frame_->data[0] = in;                      // Y
-  frame_->data[1] = in + data_size_;         // U
-  frame_->data[2] = in + data_size_ * 5 / 4; // V
-  frame_->pts = (count++) * (ctx_->time_base.den) /
-                ((ctx_->time_base.num) * 25); // æ—¶é—´æˆ³
-  av_init_packet(&packet_);
-  // Encode
-  int got_picture = 0;
-  int ret = avcodec_encode_video2(ctx_, &packet_, frame_, &got_picture);
-
-  if (ret < 0) {
-    LOG_ERROR("Failed to encode!");
-    return -1;
   }
-
-  if (got_picture == 1) {
-    framecnt++;
-    // è·³è¿‡00 00 00 01 startcode nalu
-    memcpy(out, packet_.data + 4, packet_.size - 4);
-    out_size = packet_.size - 4;
-    av_packet_unref(&packet_); // é‡Šæ”¾å†…å­˜ ä¸é‡Šæ”¾åˆ™å†…å­˜æ³„æ¼
-    return 0;
-  }
-
-  return -1;
 }
+
+// template <typename H264Callback>
+// int H264Encoder::encode(uint8_t *in, H264Callback handleH264) {
+//   int out_size = 0;
+//   std::shared_ptr<uint8_t[]> out(new uint8_t[VIDEO_NALU_BUF_MAX_SIZE]);
+
+//   frame_->data[0] = in;                      // Y
+//   frame_->data[1] = in + data_size_;         // U
+//   frame_->data[2] = in + data_size_ * 5 / 4; // V
+//   frame_->pts = (count++) * (ctx_->time_base.den) /
+//                 ((ctx_->time_base.num) * 25); // Ê±¼ä´Á
+//   av_init_packet(&packet_);
+//   // Encode
+//   int got_picture = 0;
+//   int ret = avcodec_encode_video2(ctx_, &packet_, frame_, &got_picture);
+
+//   if (ret < 0) {
+//     LOG_ERROR("Failed to encode!");
+//     return -1;
+//   }
+
+//   if (got_picture == 1) {
+//     framecnt++;
+//     // Ìø¹ı00 00 00 01 startcode nalu
+//     memcpy(out.get(), packet_.data + 4, packet_.size - 4);
+//     out_size = packet_.size - 4;
+//     handleH264(out, out_size);
+//     av_packet_unref(&packet_); // ÊÍ·ÅÄÚ´æ ²»ÊÍ·ÅÔòÄÚ´æĞ¹Â©
+//     return 0;
+//   }
+//   std::cout << "Got picture is not 1, got_picture: " << got_picture
+//             << std::endl;
+
+//   return -1;
+// }
 
 } // namespace Encoder

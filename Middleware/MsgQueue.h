@@ -14,15 +14,43 @@
 #include <variant>
 #include <vector>
 
-using FLVMessage = std::shared_ptr<Message::FLVAudioMessage>;
+using FLVAudioMessage = std::shared_ptr<Message::FLVAudioMessage>;
 using FLVMetaMessage = std::shared_ptr<Message::FLVMetaMessage>;
 using VideoSequenceMessage = std::shared_ptr<Message::VideoSequenceMessage>;
 using H264RawMessage = std::shared_ptr<Message::H264RawMessage>;
 using AudioSpecificConfigMessage =
     std::shared_ptr<Message::AudioSpecificConfigMessage>;
 using AudioRawDataMessage = std::shared_ptr<Message::AudioRawDataMessage>;
-
+using MessageVariant =
+    std::variant<FLVAudioMessage, FLVMetaMessage, VideoSequenceMessage,
+                 H264RawMessage, AudioSpecificConfigMessage,
+                 AudioRawDataMessage>;
 namespace Middleware {
+
+struct IReceiver {
+  virtual void dispatch(const MessageVariant &) = 0;
+  virtual ~IReceiver() = default;
+};
+
+template <typename T> struct scenario : virtual IReceiver {
+  virtual ~scenario() = default;
+  virtual void handle(const T &) = 0;
+};
+
+template <typename... Ts> struct BaseTrigger : scenario<Ts>... {
+  virtual ~BaseTrigger() = default;
+
+  void dispatch(const MessageVariant &msg) override {
+    std::visit(
+        [this](auto &&value) {
+          using T = std::decay_t<decltype(value)>;
+          if (auto *self = dynamic_cast<scenario<T> *>(this)) {
+            self->handle(value);
+          }
+        },
+        msg);
+  }
+};
 
 template <typename... MsgTypes> class MsgQueue {
 private:
@@ -46,32 +74,14 @@ public:
     cond_.notify_one();
   }
 
-  template <typename MsgType>
-  uint32_t subscribe(std::function<void(const MsgType &)> callback) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    callbacks_[typeid(MsgType).name()] = [callback](const MsgVariant &msg) {
-      callback(std::get<MsgType>(msg));
-    };
+  void addReceiver(std::shared_ptr<IReceiver> tr) { callbacks_.push_back(tr); }
 
-    return 12; // 返回一个示例的订阅ID
-  }
-
-  void delegate(uint32_t subscriptionId) {
-    std::thread([this, subscriptionId]() {
+  void delegate() {
+    std::thread([&]() {
       while (true) {
         auto msg = recvMessage();
-        if (msg) {
-          std::visit(
-              [this, subscriptionId](auto &&m) {
-                using MsgType = std::decay_t<decltype(m)>;
-                auto it = callbacks_.find(typeid(MsgType).name());
-                if (it != callbacks_.end()) {
-                  for (const auto &callback : it->second) {
-                    callback(m);
-                  }
-                }
-              },
-              *msg);
+        for (auto &receiver : callbacks_) {
+          receiver->dispatch(msg);
         }
       }
     }).detach();
@@ -80,8 +90,8 @@ public:
   std::variant<MsgTypes...> recvMessage() {
     std::unique_lock<std::mutex> lock(mutex_);
     cond_.wait(lock, [this] { return !queue_.empty(); });
-    auto msg = queue_.back();
-    queue_.pop_back();
+    auto msg = queue_.front();
+    queue_.pop_front();
     return msg;
   }
 
@@ -89,9 +99,7 @@ private:
   std::deque<std::variant<MsgTypes...>> queue_;
   std::mutex mutex_;
   std::condition_variable cond_;
-  std::map<std::string /*message */,
-           std::vector<std::function<void(const std::variant<MsgTypes...> &)>>>
-      callbacks_;
+  std::vector<std::shared_ptr<IReceiver>> callbacks_;
 };
 
 } // namespace Middleware

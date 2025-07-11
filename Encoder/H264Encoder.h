@@ -5,25 +5,58 @@
 extern "C" {
 #endif
 #include <libavcodec/avcodec.h>
-#include <libavutil/opt.h>
 #include <libavcodec/version.h>
+#include <libavutil/opt.h>
 #ifdef __cplusplus
 };
 #endif
+#include <functional>
 #include <string>
-
 namespace Encoder {
 
 class H264Encoder {
 public:
-  H264Encoder(int width = 1920, int height = 1080, int fps = 25,
-              int bitrate = 500 * 1024, int gop = 30, int b_frames = 0);
+  H264Encoder(int width = 720, int height = 480, int fps = 25,
+              int bitrate = 512 * 1024, int gop = 25, int b_frames = 0);
   ~H264Encoder();
   bool init();
-  int encode(uint8_t *in, uint32_t in_samples, uint8_t *out,
-             uint32_t &out_size);
-  void initByName();
-  void print_all_encoders();
+
+  template <typename H264Callback>
+  int encode(uint8_t *in, H264Callback handleH264) {
+    int out_size = 0;
+    std::shared_ptr<uint8_t[]> out(new uint8_t[VIDEO_NALU_BUF_MAX_SIZE]);
+
+    frame_->data[0] = in;                      // Y
+    frame_->data[1] = in + data_size_;         // U
+    frame_->data[2] = in + data_size_ * 5 / 4; // V
+    frame_->pts = (count++) * (ctx_->time_base.den) /
+                  ((ctx_->time_base.num) * 25); // 时间戳
+    av_init_packet(&packet_);
+    // Encode
+    int got_picture = 0;
+    int ret = avcodec_encode_video2(ctx_, &packet_, frame_, &got_picture);
+
+    if (ret < 0) {
+      std::cout << "Failed to encode!" << std::endl;
+      return -1;
+    }
+
+    if (got_picture == 1) {
+      framecnt++;
+      // 跳过00 00 00 01 startcode nalu
+      memcpy(out.get(), packet_.data + 4, packet_.size - 4);
+      out_size = packet_.size - 4;
+      handleH264(out, out_size);
+      av_packet_unref(&packet_); // 释放内存 不释放则内存泄漏
+      return 0;
+    }
+    std::cout << "Got picture is not 1, got_picture: " << got_picture
+              << std::endl;
+
+    return -1;
+  }
+
+  const AVCodec *find_encoder_by_name(const std::string &codec_name);
   inline int get_width() { return ctx_->width; }
   inline int get_height() { return ctx_->height; }
   double get_framerate() {
@@ -63,6 +96,7 @@ private:
   AVCodecContext *ctx_ = nullptr;
 
   int64_t pts_ = 0;
+  const int VIDEO_NALU_BUF_MAX_SIZE = 1024 * 1024;
 };
 } // namespace Encoder
 #endif // _H264_ENCODER_H_

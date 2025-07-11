@@ -19,7 +19,12 @@
 namespace TransProtocol {
 // 最大为13bit长度(8191), +64 只是防止字节对齐
 const int AAC_BUF_MAX_LENGTH = 8291 + 64;
-template <typename Container> class RTMPPusher {
+template <typename Container>
+class RTMPPusher
+    : public Middleware::BaseTrigger<FLVMetaMessage, VideoSequenceMessage,
+                                     H264RawMessage, AudioSpecificConfigMessage,
+                                     AudioRawDataMessage>,
+      public std::enable_shared_from_this<RTMPPusher<Container>> {
 public:
   RTMPPusher(Container &msgQueue,
              const std::shared_ptr<Encoder::AACEncoder> &audioEncoder,
@@ -27,15 +32,16 @@ public:
              const std::shared_ptr<Encoder::AudioS16Resampler> &audioResampler)
       : msgQueue_(msgQueue), audioEncoder_(audioEncoder),
         videoEncoder_(videoEncoder), audioResampler_(audioResampler),
-        rtmpProtocol_(
-            std::make_shared<RTMPProtocol>("rtmp://192.168.133.129/live", 1)) {}
+        rtmpProtocol_(std::make_shared<RTMPProtocol>(
+            "rtmp://192.168.133.129/live/livestream")) {}
   ~RTMPPusher() = default;
 
   void start() {
     AVPublishTime::GetInstance()->Rest();
-    auto msg = msgQueue_.subscribe<VideoSequenceMessage>(
-        [&](auto &msg) { handleMessage(msg); });
-    rtmpProtocol_->connect(RtmpUrl);
+    rtmpProtocol_->connect();
+    msgQueue_.addReceiver(
+        std::static_pointer_cast<Middleware::IReceiver>(shared_from_this()));
+    msgQueue_.delegate();
   }
 
   void sendVideoPacket(uint8_t *yuv, int size) {
@@ -57,18 +63,16 @@ public:
       msgQueue_.publish(vid_config_msg);
     }
 
-    std::shared_ptr<uint8_t[]> video_nalu_buf(
-        new uint8_t[VIDEO_NALU_BUF_MAX_SIZE]);
-    video_nalu_size_ = VIDEO_NALU_BUF_MAX_SIZE;
-    int sizeEncoded =
-        videoEncoder_->encode(yuv, 0, video_nalu_buf.get(), video_nalu_size_);
-    if (sizeEncoded > 0) {
-      auto pts = AVPublishTime::GetInstance()->get_video_pts();
-      auto nalu_type = video_nalu_buf[0] & 0x1f;
-      auto rawData = std::make_shared<Message::H264RawMessage>(
-          video_nalu_buf, video_nalu_size_, nalu_type, pts);
-      msgQueue_.publish(rawData);
-    }
+    videoEncoder_->encode(
+        yuv, [&](std::shared_ptr<uint8_t[]> &nalu_buf, uint32_t nalu_buf_size) {
+          if (nalu_buf_size > 0) {
+            auto pts = AVPublishTime::GetInstance()->get_video_pts();
+            auto nalu_type = nalu_buf[0] & 0x1f;
+            auto rawData = std::make_shared<Message::H264RawMessage>(
+                nalu_buf, nalu_buf_size, nalu_type, pts);
+            msgQueue_.publish(rawData);
+          }
+        });
   }
 
   void sendAudioPacket(uint8_t *pcm, int size) {
@@ -121,15 +125,15 @@ public:
         auto rawData =
             std::make_shared<Message::AudioRawDataMessage>(sizeEncoded + 2);
         rawData->pts = AVPublishTime::GetInstance()->get_audio_pts();
-        rawData->data[0] = 0xaf;
-        rawData->data[1] = 0x01;
-        memcpy(&rawData->data[2], aac_buf_.data(), sizeEncoded);
+        rawData->data_[0] = 0xaf;
+        rawData->data_[1] = 0x01;
+        memcpy(&rawData->data_[2], aac_buf_.data(), sizeEncoded);
         msgQueue_.publish(rawData);
       }
     }
   }
 
-  bool sendMetadata(FLVMetaMessage &metadata);
+  bool sendMetadata(const FLVMetaMessage &metadata);
 
   void sendSetMetaData() {
     // RTMP -> FLV的格式去发送， metadata
@@ -150,11 +154,51 @@ public:
     msgQueue_.publish(metadata);
   }
 
+  void scenario<VideoSequenceMessage>::handle(
+      const VideoSequenceMessage &t) override {
+    handleMessage(t);
+  }
+
+  void scenario<H264RawMessage>::handle(const H264RawMessage &t) override {
+    handleMessage(t);
+  }
+
+  void scenario<AudioSpecificConfigMessage>::handle(
+      const AudioSpecificConfigMessage &t) override {
+    handleMessage(t);
+  }
+
+  void
+  scenario<AudioRawDataMessage>::handle(const AudioRawDataMessage &t) override {
+    handleMessage(t);
+  }
+
+  void scenario<FLVMetaMessage>::handle(const FLVMetaMessage &t) override {
+    rtmpProtocol_->sendMetaData(
+        t->width, t->height, t->framerate, t->videodatarate, t->audiodatarate,
+        t->audiosamplerate, t->audiosamplesize, t->channles);
+  }
+
 private:
-  void handleMessage(VideoSequenceMessage &msg);
-  void handleMessage(H264RawMessage &msg);
-  void handleMessage(AudioSpecificConfigMessage &msg);
-  void handleMessage(AudioRawDataMessage &msg);
+  void handleMessage(const VideoSequenceMessage &msg) {
+    std::cout << "handleMessage : VideoSequenceMessage" << std::endl;
+    rtmpProtocol_->sendH264SequenceHeader(msg->sps_, msg->sps_size_, msg->pps_,
+                                          msg->pps_size_);
+  }
+
+  void handleMessage(const H264RawMessage &msg) {
+    rtmpProtocol_->sendH264RawData(msg->isKeyFrame(), msg->getData(),
+                                   msg->getSize());
+  }
+
+  void handleMessage(const AudioSpecificConfigMessage &msg) {
+    rtmpProtocol_->sendAudioSpecificConfig(msg->profile_ + 1, msg->channels_,
+                                           msg->sample_rate_);
+  }
+
+  void handleMessage(const AudioRawDataMessage &msg) {
+    rtmpProtocol_->sendAudioRawData(msg->data_, msg->size_);
+  }
 
 private:
   Container &msgQueue_;
