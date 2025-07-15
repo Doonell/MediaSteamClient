@@ -70,9 +70,13 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "queue": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "array": "cpp",
+        "fstream": "cpp"
     },
     "editor.formatOnSave": true,
     "editor.tabCompletion": "on",
-    "C_Cpp.copilotHover": "disabled"
+    "C_Cpp.copilotHover": "disabled",
+    "gitlens.hovers.enabled": false,
+    "gitlens.hovers.avatars": false
 }

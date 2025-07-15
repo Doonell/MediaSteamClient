@@ -76,6 +76,7 @@ bool AudioS16Resampler::init() {
     LOG_ERROR("Could not allocate resampled data");
     return false;
   }
+
   return true;
 }
 
@@ -83,48 +84,55 @@ int AudioS16Resampler::sendFrame(uint8_t *in_pcm, const int in_size) {
   auto frame = std::shared_ptr<AVFrame>(
       av_frame_alloc(), [](AVFrame *frame) { av_frame_free(&frame); });
   if (!frame) {
-    LOG_ERROR("Could not allocate audio frame");
+    std::cout << "Could not allocate audio frame" << std::endl;
     return -1;
   }
 
+  frame->format = src_sample_format_;
+  frame->channel_layout = src_channels_layout_;
+  int ch = av_get_channel_layout_nb_channels(src_channels_layout_);
+  frame->nb_samples =
+      in_size / av_get_bytes_per_sample(src_sample_format_) / ch;
+  // 内部还参考了nb_samples
+  avcodec_fill_audio_frame(frame.get(), ch, src_sample_format_, in_pcm, in_size,
+                           0);
+
+  int src_nb_samples = frame->nb_samples;
+  uint8_t **src_data = frame->extended_data;
   if (start_pts_ == AV_NOPTS_VALUE && frame->pts != AV_NOPTS_VALUE) {
     start_pts_ = frame->pts;
     cur_pts_ = frame->pts;
   }
 
-  int src_nb_samples = frame->nb_samples;
-  uint8_t **src_data = frame->extended_data;
-
   int delay = swr_get_delay(swr_ctx_, src_sample_rate_);
   int dst_nb_samples = av_rescale_rnd(delay + src_nb_samples, dst_sample_rate_,
                                       src_sample_rate_, AV_ROUND_UP);
   if (dst_nb_samples > max_dst_nb_samples_) {
-    LOG_ERROR("dst_nb_samples is too large");
+    std::cout << "dst_nb_samples is too large" << std::endl;
     return -1;
   }
 
   int nb_samples = swr_convert(swr_ctx_, resampled_data_, dst_nb_samples,
                                (const uint8_t **)src_data, src_nb_samples);
+  if (nb_samples < 0) {
+      std::cout << "swr_convert failed" << std::endl;
+      return -1;
+  }
   int dst_buffer_size = av_samples_get_buffer_size(
       &dst_linesize, dst_channels_, nb_samples, dst_sample_format_, 1);
 
-  audioFifo_ = av_audio_fifo_alloc(dst_sample_format_, dst_channels_, 1);
-  if (!audioFifo_) {
-    LOG_ERROR("Could not allocate audio FIFO");
-    return false;
-  }
   return av_audio_fifo_write(audioFifo_, (void **)resampled_data_, nb_samples);
 }
 
 bool AudioS16Resampler::receiveFrame(
-    std::vector<std::shared_ptr<AVFrame>> &frames, int desired_size) {
-  if (desired_size <= 0) {
-    LOG_ERROR("desired_size is invalid");
+    std::vector<std::shared_ptr<AVFrame>> &frames, int frame_size) {
+  if (frame_size <= 0) {
+    LOG_ERROR("frame_size is invalid");
     return false;
   }
 
-  while (av_audio_fifo_size(audioFifo_) >= desired_size) {
-    auto frame = readFrameFromFifo(desired_size);
+  while (av_audio_fifo_size(audioFifo_) >= frame_size) {
+    auto frame = readFrameFromFifo(frame_size);
     if (frame) {
       frames.push_back(frame);
     } else {
@@ -137,16 +145,16 @@ bool AudioS16Resampler::receiveFrame(
 }
 
 std::shared_ptr<AVFrame>
-AudioS16Resampler::readFrameFromFifo(const int desiredSize) {
-  auto frame = createFrameBySamples(desiredSize);
+AudioS16Resampler::readFrameFromFifo(const int frame_size) {
+  auto frame = createFrameBySamples(frame_size);
   if (frame) {
-    int ret = av_audio_fifo_read(audioFifo_, (void **)frame->data, desiredSize);
+    int ret = av_audio_fifo_read(audioFifo_, (void **)frame->data, frame_size);
     if (ret <= 0) {
       LOG_ERROR("av_audio_fifo_read failed");
     }
-    frame->pts = cur_pts_;   // pts是用户自己定义的
-    cur_pts_ += desiredSize; // 为什么要往AV_NOPTS_VALUE上加？
-    total_resampled_num_ += desiredSize;
+    frame->pts = cur_pts_;  // pts是用户自己定义的
+    cur_pts_ += frame_size; // 为什么要往AV_NOPTS_VALUE上加？
+    total_resampled_num_ += frame_size;
   }
   return frame;
 }
@@ -159,7 +167,7 @@ AudioS16Resampler::createFrameBySamples(const int nb_samples) {
   };
   auto frame = std::shared_ptr<AVFrame>(av_frame_alloc(), doFreeFrame);
   if (!frame) {
-    LOG_ERROR("%s av_frame_alloc frame failed", logtag_.c_str());
+    std::cout << "av_frame_alloc frame failed " << std::endl;
     return {};
   }
   frame->nb_samples = nb_samples;
@@ -168,7 +176,7 @@ AudioS16Resampler::createFrameBySamples(const int nb_samples) {
   frame->sample_rate = dst_sample_rate_;
   int ret = av_frame_get_buffer(frame.get(), 0);
   if (ret < 0) {
-    LOG_INFO("cannot allocate audio data buffer ", logtag_.c_str());
+    std::cout << "cannot allocate audio data buffer " << std::endl;
     return {};
   }
   return frame;

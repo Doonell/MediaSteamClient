@@ -15,7 +15,7 @@ PCMFileReader::~PCMFileReader() {
 
 bool PCMFileReader::init() {
   if (openPcmFile() != 0) {
-    LOG_ERROR("openPcmFile %s failed", filePath_.c_str());
+    std::cout << "openPcmFile %s failed " << filePath_.c_str() << std::endl;
     return false;
   }
   return true;
@@ -35,6 +35,11 @@ int PCMFileReader::readPcmFile(uint8_t *pcm_buf, int32_t nb_samples) {
 
   if ((int64_t)pcm_total_duration_ > dif)
     return -1;
+
+  if (!pcm_fp_) {
+      std::cout << "pcm file is null \n";
+      return -1;
+  }
 
   size_t ret = ::fread(pcm_buf, 1, nb_samples * 4, pcm_fp_);
   if (ret != nb_samples * 4) {

@@ -59,24 +59,4 @@ bool AACEncoder::init() {
   return true;
 }
 
-int32_t AACEncoder::encode(AVFrame *frame, uint8_t *out, int out_len) {
-  int got_output = 0;
-
-  AVPacket pkt;
-  av_init_packet(&pkt);
-  pkt.data = out;
-  pkt.size = out_len;
-
-  if (avcodec_encode_audio2(ctx_, &pkt, frame, &got_output) < 0) {
-    LOG_ERROR("Error encoding audio");
-    return -1;
-  }
-
-  if (!got_output) {
-    LOG_ERROR("AAC: could not get output packet");
-    return -1;
-  }
-
-  return pkt.size;
-}
 } // namespace Encoder

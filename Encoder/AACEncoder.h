@@ -11,13 +11,41 @@ extern "C" {
 #endif
 
 namespace Encoder {
+
+// 最大为13bit长度(8191), +64 只是防止字节对齐
+const int AAC_BUF_MAX_LENGTH = 8291 + 64;
+
 class AACEncoder {
 public:
   AACEncoder(int sample_rate = 48000, int channels = 2,
              int bitrate = 128 * 1024, int channel_layout = 3);
   ~AACEncoder();
   bool init();
-  int encode(AVFrame *frame, uint8_t *out, int out_len);
+
+  template <typename AACCallback>
+  int32_t encode(AVFrame *frame, const AACCallback &handleAACcallback) {
+    int got_output = 0;
+    std::shared_ptr<uint8_t[]> out(new uint8_t[AAC_BUF_MAX_LENGTH]);
+
+    AVPacket pkt;
+    av_init_packet(&pkt);
+    pkt.data = out.get();
+    pkt.size = AAC_BUF_MAX_LENGTH;
+
+    if (avcodec_encode_audio2(ctx_, &pkt, frame, &got_output) < 0) {
+      std::cout << "Error encoding audio" << std::endl;
+      return -1;
+    }
+
+    if (!got_output) {
+      std::cout << "AAC: could not get output packet" << std::endl;
+      return -1;
+    }
+
+    handleAACcallback(out.get(), pkt.size);
+
+    return pkt.size;
+  }
 
   int get_sample_rate() { return ctx_->sample_rate; }
   int get_profile() { return ctx_->profile; }

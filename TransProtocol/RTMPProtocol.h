@@ -35,7 +35,7 @@ public:
   int sendAudioRawData(uint8_t *data, int size) override;
   int sendH264SequenceHeader(uint8_t *sps, uint32_t sps_size, uint8_t *pps,
                              uint32_t pps_size) override;
-  int sendH264RawData(bool isKeyFrame, uint8_t *data, int size) override;
+  int sendH264RawData(bool, uint8_t *, int, uint32_t) override;
   int sendPacket(unsigned int packet_type, unsigned char *data,
                  unsigned int size, int64_t timestamp) override;
 

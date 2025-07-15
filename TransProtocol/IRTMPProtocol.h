@@ -21,7 +21,7 @@ public:
   virtual int sendAudioRawData(uint8_t *data, int size) = 0;
   virtual int sendH264SequenceHeader(uint8_t *sps, uint32_t sps_size,
                                      uint8_t *pps, uint32_t pps_size) = 0;
-  virtual int sendH264RawData(bool, uint8_t *data, int size) = 0;
+  virtual int sendH264RawData(bool, uint8_t *, int, uint32_t) = 0;
   virtual int sendPacket(unsigned int packet_type, unsigned char *data,
                          unsigned int size, int64_t timestamp) = 0;
 };

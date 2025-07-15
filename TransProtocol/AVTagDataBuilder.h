@@ -307,6 +307,7 @@ public:
   void buildAudioSpecificConfig() {
     data_.emplace_back(soundFormat_ << 4 | soundRate_ << 2 | soundSize_ << 1 |
                        soundType_);
+    data_.emplace_back(static_cast<uint8_t>(AVPacketType_));
     uint16_t tag = 0;
     tag |= (audioObjectType_ & 0x1F) << 11;     // 5 bits
     tag |= (samplingFreqIndex_ & 0x0F) << 7;    // 4 bits

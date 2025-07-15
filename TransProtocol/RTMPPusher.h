@@ -17,8 +17,7 @@
 #include <vector>
 
 namespace TransProtocol {
-// 最大为13bit长度(8191), +64 只是防止字节对齐
-const int AAC_BUF_MAX_LENGTH = 8291 + 64;
+
 template <typename Container>
 class RTMPPusher
     : public Middleware::BaseTrigger<FLVMetaMessage, VideoSequenceMessage,
@@ -90,19 +89,6 @@ public:
       msgQueue_.publish(audioSpecificConfigMessage);
     }
 
-    if (need_send_video_config) {
-      need_send_video_config = false;
-      auto vid_config_msg = std::make_shared<Message::VideoSequenceMessage>(
-          videoEncoder_->get_sps_data(), videoEncoder_->get_sps_size(),
-          videoEncoder_->get_pps_data(), videoEncoder_->get_pps_size());
-      vid_config_msg->nWidth = video_width_;
-      vid_config_msg->nHeight = video_height_;
-      vid_config_msg->nFrameRate = video_fps_;
-      vid_config_msg->nVideoDataRate = video_bitrate_;
-      vid_config_msg->pts_ = 0;
-      msgQueue_.publish(vid_config_msg);
-    }
-
     auto ret = audioResampler_->sendFrame(pcm, size);
     if (ret < 0) {
       LOG_INFO("sendFrame failed ");
@@ -117,19 +103,19 @@ public:
       return;
     }
 
-    std::array<uint8_t, AAC_BUF_MAX_LENGTH> aac_buf_;
     for (int i = 0; i < resampled_frames.size(); i++) {
       int sizeEncoded = audioEncoder_->encode(
-          resampled_frames[i].get(), aac_buf_.data(), AAC_BUF_MAX_LENGTH);
-      if (sizeEncoded > 0) {
-        auto rawData =
-            std::make_shared<Message::AudioRawDataMessage>(sizeEncoded + 2);
-        rawData->pts = AVPublishTime::GetInstance()->get_audio_pts();
-        rawData->data_[0] = 0xaf;
-        rawData->data_[1] = 0x01;
-        memcpy(&rawData->data_[2], aac_buf_.data(), sizeEncoded);
-        msgQueue_.publish(rawData);
-      }
+          resampled_frames[i].get(), [&](uint8_t *out, int out_len) {
+            if (out_len > 0) {
+              auto rawData =
+                  std::make_shared<Message::AudioRawDataMessage>(out_len + 2);
+              rawData->pts = AVPublishTime::GetInstance()->get_audio_pts();
+              rawData->data_[0] = 0xaf;
+              rawData->data_[1] = 0x01;
+              memcpy(&rawData->data_[2], out, out_len);
+              msgQueue_.publish(rawData);
+            }
+          });
     }
   }
 
@@ -148,7 +134,7 @@ public:
     metadata->has_audio = true;
     metadata->channles = audioEncoder_->get_channels();
     metadata->audiosamplerate = audioEncoder_->get_sample_rate();
-    metadata->audiosamplesize = 16;
+    metadata->audiosamplesize = 16; // need to be checked
     metadata->audiodatarate = 64;
     metadata->pts = 0;
     msgQueue_.publish(metadata);
@@ -188,7 +174,7 @@ private:
 
   void handleMessage(const H264RawMessage &msg) {
     rtmpProtocol_->sendH264RawData(msg->isKeyFrame(), msg->getData(),
-                                   msg->getSize());
+                                   msg->getSize(), msg->pts());
   }
 
   void handleMessage(const AudioSpecificConfigMessage &msg) {

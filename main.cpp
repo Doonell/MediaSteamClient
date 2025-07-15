@@ -53,17 +53,16 @@ int main() {
       std::make_shared<TransProtocol::RTMPPusher<decltype(msgQueue)>>(
           msgQueue, aacEncoder, h264Encoder, audioResampler);
   rtmpPusher->start();
-  auto yuvFileReader =
-      std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
-  yuvFileReader->init();
-  yuvFileReader->start(
-      [&](uint8_t *yuv, int size) { rtmpPusher->sendVideoPacket(yuv, size); });
+  //auto yuvFileReader =
+  //    std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
+  //yuvFileReader->init();
+  //yuvFileReader->start(
+  //    [&](uint8_t *yuv, int size) { rtmpPusher->sendVideoPacket(yuv, size); });
 
   auto pcmFileReader = std::make_shared<Reader::PCMFileReader>();
   pcmFileReader->init();
-  pcmFileReader->start([&](uint8_t *data, int size) {
-    rtmpPusher->sendAudioPacket(data, size);
-  });
+  pcmFileReader->start(
+      [&](uint8_t *pcm, int size) { rtmpPusher->sendAudioPacket(pcm, size); });
 
   while (1) {
     ::sleep(1);

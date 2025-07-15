@@ -51,6 +51,7 @@ public:
   bool isKeyFrame() const { return (frame_type_ == 0x05) ? true : false; }
   int getSize() const { return nalu_size_; }
   uint8_t *getData() const { return nalu_.get(); }
+  uint32_t pts() const { return pts_; }
 
 private:
   std::shared_ptr<uint8_t[]> nalu_;
