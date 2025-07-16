@@ -18,7 +18,7 @@ public:
                            double channels) = 0;
   virtual void sendAudioSpecificConfig(uint8_t profile, uint8_t channels,
                                        uint32_t sample_rate) = 0;
-  virtual int sendAudioRawData(uint8_t *data, int size) = 0;
+  virtual int sendAudioRawData(uint8_t *data, int size, uint32_t pts) = 0;
   virtual int sendH264SequenceHeader(uint8_t *sps, uint32_t sps_size,
                                      uint8_t *pps, uint32_t pps_size) = 0;
   virtual int sendH264RawData(bool, uint8_t *, int, uint32_t) = 0;

@@ -32,7 +32,7 @@ public:
       : msgQueue_(msgQueue), audioEncoder_(audioEncoder),
         videoEncoder_(videoEncoder), audioResampler_(audioResampler),
         rtmpProtocol_(std::make_shared<RTMPProtocol>(
-            "rtmp://192.168.133.129/live/livestream")) {}
+            "rtmp://101.37.125.75/live/livestream")) {}
   ~RTMPPusher() = default;
 
   void start() {
@@ -183,7 +183,7 @@ private:
   }
 
   void handleMessage(const AudioRawDataMessage &msg) {
-    rtmpProtocol_->sendAudioRawData(msg->data_, msg->size_);
+    rtmpProtocol_->sendAudioRawData(msg->data_, msg->size_, msg->pts);
   }
 
 private:

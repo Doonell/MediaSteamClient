@@ -154,7 +154,7 @@ void RTMPProtocol::sendAudioSpecificConfig(uint8_t profile, uint8_t channels,
   }
 }
 
-int RTMPProtocol::sendAudioRawData(uint8_t *data, int size) {
+int RTMPProtocol::sendAudioRawData(uint8_t *data, int size, uint32_t pts) {
   // AVTagDataBuilder audioRawData;
   // audioRawData
   //     .setSoundFormat(AVTagDataBuilder::ESoundFormat::AAC)        // AAC
@@ -170,13 +170,13 @@ int RTMPProtocol::sendAudioRawData(uint8_t *data, int size) {
   RTMPPacketBuilder rtmpPacket;
   rtmpPacket.chunkAudioChannel()
       .chunkFormatLarge()
-      .chunkTimeStamp(timestamp_)
+      .chunkTimeStamp(pts)
       .chunkStreamId(rtmpHolder_.get()->m_stream_id)
       .MessageType(RTMP_PACKET_TYPE_AUDIO)
       .chunkBodySize(size)
       .RtmpData(data, size);
 
-  std::cout << "audio " << timestamp_ << std::endl;
+  std::cout << "audio " << pts << std::endl;
   int nRet = RTMP_SendPacket(rtmpHolder_.get(), rtmpPacket.data(), 0);
   if (nRet != 1) {
     LOG_INFO("RTMP_SendPacket fail\n");

@@ -32,7 +32,7 @@ public:
                    double channels) override;
   void sendAudioSpecificConfig(uint8_t profile, uint8_t channels,
                                uint32_t sample_rate) override;
-  int sendAudioRawData(uint8_t *data, int size) override;
+  int sendAudioRawData(uint8_t *data, int size, uint32_t pts) override;
   int sendH264SequenceHeader(uint8_t *sps, uint32_t sps_size, uint8_t *pps,
                              uint32_t pps_size) override;
   int sendH264RawData(bool, uint8_t *, int, uint32_t) override;
