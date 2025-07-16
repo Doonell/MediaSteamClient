@@ -88,16 +88,16 @@ int RTMPProtocol::sendMetaData(double width, double height, double framerate,
       .put_amf_string("copyright")
       .put_byte(AMF_STRING)
       .put_amf_string("firehood")
-      // .put_amf_string("width")
-      // .put_amf_double(width)
-      // .put_amf_string("height")
-      // .put_amf_double(height)
-      // .put_amf_string("framerate")
-      // .put_amf_double(framerate)
-      // .put_amf_string("videodatarate")
-      // .put_amf_double(videodatarate)
-      // .put_amf_string("videocodecid")
-      // .put_amf_double(FLV_CODECID_H264)
+      .put_amf_string("width")
+      .put_amf_double(width)
+      .put_amf_string("height")
+      .put_amf_double(height)
+      .put_amf_string("framerate")
+      .put_amf_double(framerate)
+      .put_amf_string("videodatarate")
+      .put_amf_double(videodatarate)
+      .put_amf_string("videocodecid")
+      .put_amf_double(FLV_CODECID_H264)
       .put_amf_string("audiodatarate")
       .put_amf_double(audiodatarate)
       .put_amf_string("audiosamplerate")
@@ -176,6 +176,7 @@ int RTMPProtocol::sendAudioRawData(uint8_t *data, int size) {
       .chunkBodySize(size)
       .RtmpData(data, size);
 
+  std::cout << "audio " << timestamp_ << std::endl;
   int nRet = RTMP_SendPacket(rtmpHolder_.get(), rtmpPacket.data(), 0);
   if (nRet != 1) {
     LOG_INFO("RTMP_SendPacket fail\n");

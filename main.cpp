@@ -39,7 +39,7 @@ int main() {
 
   double audio_frame_duration =
       1000.0 / aacEncoder->get_sample_rate() * aacEncoder->GetFrameSampleSize();
-  LOG_INFO("audio_frame_duration:%lf", audio_frame_duration);
+
   AVPublishTime::GetInstance()->set_audio_frame_duration(audio_frame_duration);
   AVPublishTime::GetInstance()->set_audio_pts_strategy(
       AVPublishTime::PTS_RECTIFY);
@@ -53,16 +53,26 @@ int main() {
       std::make_shared<TransProtocol::RTMPPusher<decltype(msgQueue)>>(
           msgQueue, aacEncoder, h264Encoder, audioResampler);
   rtmpPusher->start();
-  //auto yuvFileReader =
-  //    std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
-  //yuvFileReader->init();
-  //yuvFileReader->start(
-  //    [&](uint8_t *yuv, int size) { rtmpPusher->sendVideoPacket(yuv, size); });
+
+  auto yuvFileReader =
+      std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
+  yuvFileReader->init();
+  std::thread yuvThread([&]() {
+    yuvFileReader->start([&](uint8_t *yuv, int size) {
+      rtmpPusher->sendVideoPacket(yuv, size);
+    });
+  });
+  yuvThread.detach();
 
   auto pcmFileReader = std::make_shared<Reader::PCMFileReader>();
   pcmFileReader->init();
-  pcmFileReader->start(
-      [&](uint8_t *pcm, int size) { rtmpPusher->sendAudioPacket(pcm, size); });
+
+  std::thread pcmThread([&]() {
+    pcmFileReader->start([&](uint8_t *pcm, int size) {
+      rtmpPusher->sendAudioPacket(pcm, size);
+    });
+  });
+  pcmThread.detach();
 
   while (1) {
     ::sleep(1);
