@@ -12,7 +12,156 @@
 #include <iostream>
 #include <memory>
 
+extern "C" {
+#include <libavdevice/avdevice.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
+#include <libavutil/imgutils.h>
+}
+
 using namespace TimeHelper;
+
+int printLocalDevicesList() {
+    av_log_set_level(AV_LOG_INFO);
+    avdevice_register_all();
+    // ==== 设置输入设备（以 Windows DirectShow 为例） ====
+    AVInputFormat* inputFmt = av_find_input_format("dshow");
+
+    // 创建一个选项字典，启用列设备
+    AVDictionary* options = nullptr;
+    av_dict_set(&options, "list_devices", "true", 0);
+
+    AVFormatContext* inputCtx = nullptr;
+    if (avformat_open_input(&inputCtx, "video=dummy", inputFmt, &options) != 0) {
+        std::cerr << "无法打开输入设备\n";
+        return -1;
+    }
+}
+
+int pushLocalStream() {
+    av_log_set_level(AV_LOG_INFO);
+    avdevice_register_all();
+    // ==== 设置输入设备（以 Windows DirectShow 为例） ====
+    AVInputFormat* inputFmt = av_find_input_format("dshow");
+    const char* deviceName = "video=Logi C270 HD WebCam"; // 替换为你的摄像头名称
+
+    AVFormatContext* inputCtx = nullptr;
+    if (avformat_open_input(&inputCtx, deviceName, inputFmt, nullptr) != 0) {
+        std::cerr << "无法打开输入设备\n";
+        return -1;
+    }
+
+    if (avformat_find_stream_info(inputCtx, nullptr) < 0) {
+        std::cerr << "无法获取输入流信息\n";
+        return -1;
+    }
+
+    // ==== 找到视频流 ====
+    int videoStreamIndex = -1;
+    for (unsigned i = 0; i < inputCtx->nb_streams; ++i) {
+        if (inputCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            videoStreamIndex = i;
+            break;
+        }
+    }
+    if (videoStreamIndex == -1) {
+        std::cerr << "找不到视频流\n";
+        return -1;
+    }
+
+    // ==== 初始化解码器 ====
+    AVCodecParameters* codecPar = inputCtx->streams[videoStreamIndex]->codecpar;
+    const AVCodec* decoder = avcodec_find_decoder(codecPar->codec_id);
+    AVCodecContext* decoderCtx = avcodec_alloc_context3(decoder);
+    //decoderCtx确定decoderCtx->pix_fmt == YUV或者RGB
+    avcodec_parameters_to_context(decoderCtx, codecPar);
+    avcodec_open2(decoderCtx, decoder, nullptr);
+
+    // ==== 初始化编码器（H.264）====
+    const AVCodec* encoder = avcodec_find_encoder(AV_CODEC_ID_H264);
+    AVCodecContext* encoderCtx = avcodec_alloc_context3(encoder);
+    encoderCtx->height = decoderCtx->height;
+    encoderCtx->width = decoderCtx->width;
+    encoderCtx->pix_fmt = AV_PIX_FMT_YUV420P;
+    encoderCtx->time_base = AVRational{ 1, 25 };
+    encoderCtx->framerate = AVRational{ 25, 1 };
+    encoderCtx->bit_rate = 400000;
+
+    if (encoder->id == AV_CODEC_ID_H264) {
+        av_opt_set(encoderCtx->priv_data, "preset", "ultrafast", 0);
+    }
+
+    avcodec_open2(encoderCtx, encoder, nullptr);
+
+    // ==== 打开输出文件 ====
+    FILE* outFile = fopen("output1.h264", "wb");
+
+    AVPacket* packet = av_packet_alloc();
+    AVFrame* frame = av_frame_alloc();
+    frame->format = encoderCtx->pix_fmt;
+    frame->width = encoderCtx->width;
+    frame->height = encoderCtx->height;
+    av_frame_get_buffer(frame, 32);
+
+    // ==== 色彩转换（例如 MJPEG -> YUV420P）====
+    SwsContext* swsCtx = sws_getContext(
+        decoderCtx->width, decoderCtx->height, decoderCtx->pix_fmt,
+        encoderCtx->width, encoderCtx->height, encoderCtx->pix_fmt,
+        SWS_BILINEAR, nullptr, nullptr, nullptr
+    );
+
+    int frameCount = 0;
+    while (frameCount < 100*30) {  // 采集 100 帧
+        if (av_read_frame(inputCtx, packet) < 0) break;
+        if (packet->stream_index != videoStreamIndex) {
+            av_packet_unref(packet);
+            continue;
+        }
+
+        // 解码
+        avcodec_send_packet(decoderCtx, packet);
+        while (avcodec_receive_frame(decoderCtx, frame) == 0) {
+            // 转换格式
+            AVFrame* swsFrame = av_frame_alloc();
+            swsFrame->format = encoderCtx->pix_fmt;
+            swsFrame->width = encoderCtx->width;
+            swsFrame->height = encoderCtx->height;
+            av_frame_get_buffer(swsFrame, 32);
+
+            sws_scale(swsCtx,
+                frame->data, frame->linesize,
+                0, frame->height,
+                swsFrame->data, swsFrame->linesize);
+
+            swsFrame->pts = frameCount++;
+
+            // 编码
+            avcodec_send_frame(encoderCtx, swsFrame);
+            AVPacket* encPkt = av_packet_alloc();
+            while (avcodec_receive_packet(encoderCtx, encPkt) == 0) {
+                fwrite(encPkt->data, 1, encPkt->size, outFile);
+                av_packet_unref(encPkt);
+            }
+            av_packet_free(&encPkt);
+            av_frame_free(&swsFrame);
+        }
+
+        av_packet_unref(packet);
+    }
+
+    // ==== 清理 ====
+    fclose(outFile);
+    av_frame_free(&frame);
+    av_packet_free(&packet);
+    sws_freeContext(swsCtx);
+    avcodec_free_context(&decoderCtx);
+    avcodec_free_context(&encoderCtx);
+    avformat_close_input(&inputCtx);
+
+    std::cout << "采集完成\n";
+    return 0;
+}
 
 int main() {
   std::cout << "Hello, World!" << std::endl;
