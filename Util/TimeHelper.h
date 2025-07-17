@@ -157,10 +157,9 @@ private:
   uint32_t video_frame_threshold_ = (uint32_t)(video_frame_duration_ / 2);
   double video_pre_pts_ = 0;
 
-  static AVPublishTime *s_publish_time;
+  inline static AVPublishTime *s_publish_time;
 };
 
-inline AVPublishTime *AVPublishTime::s_publish_time = nullptr;
 // 用来debug rtmp拉流的关键时间点
 class AVPlayTime {
 public:
@@ -232,7 +231,7 @@ private:
 
   int64_t start_time_ = 0;
 
-  static AVPlayTime *s_play_time;
+  inline static AVPlayTime *s_play_time;
 };
 
 } // namespace TimeHelper

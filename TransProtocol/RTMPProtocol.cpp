@@ -75,6 +75,28 @@ bool RTMPProtocol::connect() {
 
 bool RTMPProtocol::isConnected() { return RTMP_IsConnected(rtmpHolder_.get()); }
 
+bool RTMPProtocol::isReadCompleted(RTMPPacket *packet) {
+  if (packet == NULL) {
+    return false;
+  }
+  return RTMPPacket_IsReady(packet);
+}
+
+bool RTMPProtocol::readPacket(RTMPPacket *packet) {
+  if (packet == NULL) {
+    LOG_INFO("RTMPPacket is NULL");
+    return false;
+  }
+
+  int ret = RTMP_ReadPacket(rtmpHolder_.get(), packet);
+  if (ret <= 0) {
+    LOG_INFO("RTMP_ReadPacket failed");
+    return false;
+  }
+
+  return true;
+}
+
 int RTMPProtocol::sendMetaData(double width, double height, double framerate,
                                double videodatarate, double audiodatarate,
                                double audiosamplerate, double audiosamplesize,
@@ -253,4 +275,13 @@ int RTMPProtocol::sendPacket(unsigned int packet_type, unsigned char *data,
   return nRet;
 }
 
+void RTMPProtocol::respondPacket(RTMPPacket *packet) {
+  RTMP_ClientPacket(rtmpHolder_.get(), packet);
+}
+
+void RTMPProtocol::freePacket(RTMPPacket *packet) {
+  if (packet != nullptr) {
+    RTMPPacket_Free(packet);
+  }
+}
 } // namespace TransProtocol

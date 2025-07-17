@@ -1,6 +1,9 @@
 #ifndef _IRTMP_PROTOCOL_H_
 #define _IRTMP_PROTOCOL_H_
 
+extern "C" {
+#include "librtmp/rtmp.h"
+}
 #include <cstdint>
 #include <string>
 
@@ -12,6 +15,8 @@ public:
   virtual bool init() = 0;
   virtual bool connect() = 0;
   virtual bool isConnected() = 0;
+  virtual bool isReadCompleted(RTMPPacket *packet) = 0;
+
   virtual int sendMetaData(double width, double height, double framerate,
                            double videodatarate, double audiodatarate,
                            double audiosamplerate, double audiosamplesize,
@@ -24,6 +29,9 @@ public:
   virtual int sendH264RawData(bool, uint8_t *, int, uint32_t) = 0;
   virtual int sendPacket(unsigned int packet_type, unsigned char *data,
                          unsigned int size, int64_t timestamp) = 0;
+  virtual bool readPacket(RTMPPacket *packet) = 0;
+  virtual void respondPacket(RTMPPacket *packet) = 0;
+  virtual void freePacket(RTMPPacket *packet) = 0;
 };
 } // namespace TransProtocol
 #endif // _IRTMP_PROTOCOL_H_

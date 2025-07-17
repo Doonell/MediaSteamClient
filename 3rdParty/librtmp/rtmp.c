@@ -2119,8 +2119,8 @@ static int SendPlay(RTMP *r) {
           AMF_EncodeNumber(enc, pend, r->Link.seekTime); /* resume from here */
     else
       enc = AMF_EncodeNumber(enc, pend, 0.0);
-          /*-2000.0);*/ /* recorded as default, -2000.0 is not reliable since
-                           that freezes the player if the stream is not found */
+    /*-2000.0);*/ /* recorded as default, -2000.0 is not reliable since
+                     that freezes the player if the stream is not found */
   }
   if (!enc)
     return FALSE;
@@ -2472,9 +2472,10 @@ static int PublisherAuth(RTMP *r, AVal *description) {
 #define RESPONSE_LEN 32
 #define CHALLENGE2_LEN 16
 #define SALTED2_LEN (32 + 8 + 8 + 8)
-#define B64DIGEST_LEN 24 /* 16 byte digest => 22 b64 chars + 2 chars padding   \
-                          */
-#define B64INT_LEN 8     /* 4 byte int => 6 b64 chars + 2 chars padding */
+#define B64DIGEST_LEN                                                          \
+  24                 /* 16 byte digest => 22 b64 chars + 2 chars padding       \
+                      */
+#define B64INT_LEN 8 /* 4 byte int => 6 b64 chars + 2 chars padding */
 #define HEXHASH_LEN (2 * MD5_DIGEST_LENGTH)
   char response[RESPONSE_LEN];
   char challenge2[CHALLENGE2_LEN];

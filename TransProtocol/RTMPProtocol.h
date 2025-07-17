@@ -18,14 +18,18 @@ enum EFLV_CODECID {
 };
 class RTMPProtocol : public IRTMPProtocol {
 public:
-  RTMPProtocol(const std::string &url, bool enableVideo = true,
-               bool enableAudio = true)
-      : url_(url), enable_video_(enableVideo), enable_audio_(enableAudio) {}
+  RTMPProtocol(const std::string &url,
+               ERTMP_BASE_TYPE rtmp_obj_type = RTMP_BASE_TYPE_PUSH,
+               bool enableVideo = true, bool enableAudio = true)
+      : url_(url), rtmp_obj_type_(rtmp_obj_type), enable_video_(enableVideo),
+        enable_audio_(enableAudio) {}
   ~RTMPProtocol();
 
   bool init() override;
   bool connect() override;
   bool isConnected() override;
+  bool isReadCompleted(RTMPPacket *packet) override;
+
   int sendMetaData(double width, double height, double framerate,
                    double videodatarate, double audiodatarate,
                    double audiosamplerate, double audiosamplesize,
@@ -38,12 +42,15 @@ public:
   int sendH264RawData(bool, uint8_t *, int, uint32_t) override;
   int sendPacket(unsigned int packet_type, unsigned char *data,
                  unsigned int size, int64_t timestamp) override;
+  bool readPacket(RTMPPacket *packet) override;
+  void respondPacket(RTMPPacket *packet) override;
+  void freePacket(RTMPPacket *packet) override;
 
 private:
   std::string url_;
+  ERTMP_BASE_TYPE rtmp_obj_type_;
   bool enable_video_;
   bool enable_audio_;
-  ERTMP_BASE_TYPE rtmp_obj_type_ = RTMP_BASE_TYPE_PUSH;
   RTMPHolder rtmpHolder_;
   int64_t timestamp_;
 };

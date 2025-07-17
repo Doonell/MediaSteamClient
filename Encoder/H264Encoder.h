@@ -30,7 +30,7 @@ public:
     frame_->data[1] = in + data_size_;         // U
     frame_->data[2] = in + data_size_ * 5 / 4; // V
     frame_->pts = (count++) * (ctx_->time_base.den) /
-                  ((ctx_->time_base.num) * 25); // æ—¶é—´æˆ³
+                  ((ctx_->time_base.num) * 25); // Ê±¼ä´Á
     av_init_packet(&packet_);
     // Encode
     int got_picture = 0;
@@ -43,11 +43,11 @@ public:
 
     if (got_picture == 1) {
       framecnt++;
-      // è·³è¿‡00 00 00 01 startcode nalu
+      // rtmp-flv²»´ø4×Ö½ÚµÄNALUÍ·00,00,00,01
       memcpy(out.get(), packet_.data + 4, packet_.size - 4);
       out_size = packet_.size - 4;
       handleH264(out, out_size);
-      av_packet_unref(&packet_); // é‡Šæ”¾å†…å­˜ ä¸é‡Šæ”¾åˆ™å†…å­˜æ³„æ¼
+      av_packet_unref(&packet_); // ÊÍ·ÅÄÚ´æ ²»ÊÍ·ÅÔòÄÚ´æĞ¹Â©
       return 0;
     }
     std::cout << "Got picture is not 1, got_picture: " << got_picture
