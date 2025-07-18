@@ -10,7 +10,7 @@ namespace TransProtocol {
 
 class RTMPPuller {
 public:
-  RTMPPuller(std::string url = "rtmp://101.37.125.75/live/livestream");
+  RTMPPuller(std::string url = "rtmp://192.168.133.129/live/livestream");
   ~RTMPPuller();
   void start();
   void stop();

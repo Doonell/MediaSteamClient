@@ -6,9 +6,9 @@
 #include "Middleware/MsgQueue.h"
 #include "Source/PCMFileReader.h"
 #include "Source/YUVFileReader.h"
+#include "TransProtocol/RTMPPuller.h"
 #include "TransProtocol/RTMPPusher.h"
 #include "Util/TimeHelper.h"
-#include <TransProtocol/RTMPPuller.h>
 #include <cstdio>
 #include <iostream>
 #include <memory>
@@ -163,6 +163,12 @@ int pushLocalStream() {
 }
 
 int main() {
+  auto rtmppuller = std::make_shared<TransProtocol::RTMPPuller>();
+  rtmppuller->start();
+  for (;;) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+  exit(1);
   std::cout << "Hello, World!" << std::endl;
   auto fileReader =
       Configuration::FileReaderFactory::createFileReader("config.json", "json");
