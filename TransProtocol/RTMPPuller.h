@@ -5,6 +5,7 @@
 #include <memory>
 #include <thread>
 #include <vector>
+#include <mutex>
 
 namespace TransProtocol {
 
@@ -87,6 +88,8 @@ private:
   uint32_t got_audio_frames_ = 0; //
 
   bool firt_entry = false;
+  std::mutex mutex_;
+  std::condition_variable sync_thread_;
 };
 } // namespace TransProtocol
 

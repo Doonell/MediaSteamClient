@@ -62,16 +62,20 @@ public:
       msgQueue_.publish(vid_config_msg);
     }
 
-    videoEncoder_->encode(
-        yuv, [&](std::shared_ptr<uint8_t[]> &nalu_buf, uint32_t nalu_buf_size) {
-          if (nalu_buf_size > 0) {
-            auto pts = AVPublishTime::GetInstance()->get_video_pts();
-            auto nalu_type = nalu_buf[0] & 0x1f;
-            auto rawData = std::make_shared<Message::H264RawMessage>(
-                nalu_buf, nalu_buf_size, nalu_type, pts);
-            msgQueue_.publish(rawData);
-          }
-        });
+    videoEncoder_->encode(yuv, [&](AVPacket &packet) {
+      if (packet.size > 0) {
+        int nalu_buf_size = 0;
+        std::shared_ptr<uint8_t[]> nalu_buf(
+            new uint8_t[VIDEO_NALU_BUF_MAX_SIZE]);
+        memcpy(nalu_buf.get(), packet.data + 4, packet.size - 4);
+        nalu_buf_size = packet.size - 4;
+        auto pts = AVPublishTime::GetInstance()->get_video_pts();
+        auto nalu_type = nalu_buf[0] & 0x1f;
+        auto rawData = std::make_shared<Message::H264RawMessage>(
+            nalu_buf, nalu_buf_size, nalu_type, pts);
+        msgQueue_.publish(rawData);
+      }
+    });
   }
 
   void sendAudioPacket(uint8_t *pcm, int size) {
@@ -105,14 +109,14 @@ public:
 
     for (int i = 0; i < resampled_frames.size(); i++) {
       int sizeEncoded = audioEncoder_->encode(
-          resampled_frames[i].get(), [&](uint8_t *out, int out_len) {
-            if (out_len > 0) {
-              auto rawData =
-                  std::make_shared<Message::AudioRawDataMessage>(out_len + 2);
+          resampled_frames[i].get(), [&](ACPacket &packet) {
+            if (packet.size > 0) {
+              auto rawData = std::make_shared<Message::AudioRawDataMessage>(
+                  packet.size + 2);
               rawData->pts = AVPublishTime::GetInstance()->get_audio_pts();
               rawData->data_[0] = 0xaf;
               rawData->data_[1] = 0x01;
-              memcpy(&rawData->data_[2], out, out_len);
+              memcpy(&rawData->data_[2], packet.data, packet.size);
               msgQueue_.publish(rawData);
             }
           });

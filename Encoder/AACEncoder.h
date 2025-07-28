@@ -23,7 +23,7 @@ public:
   bool init();
 
   template <typename AACCallback>
-  int32_t encode(AVFrame *frame, const AACCallback &handleAACcallback) {
+  void encode(AVFrame *frame, const AACCallback &handleAACcallback) {
     int got_output = 0;
     std::shared_ptr<uint8_t[]> out(new uint8_t[AAC_BUF_MAX_LENGTH]);
 
@@ -34,23 +34,23 @@ public:
 
     if (avcodec_encode_audio2(ctx_, &pkt, frame, &got_output) < 0) {
       std::cout << "Error encoding audio" << std::endl;
-      return -1;
+      return;
     }
 
     if (!got_output) {
       std::cout << "AAC: could not get output packet" << std::endl;
-      return -1;
+      return;
     }
 
-    handleAACcallback(out.get(), pkt.size);
-
-    return pkt.size;
+    handleAACcallback(pkt);
+    av_packet_unref(&pkt);
   }
 
   int get_sample_rate() { return ctx_->sample_rate; }
   int get_profile() { return ctx_->profile; }
   int get_channels() { return ctx_->channels; }
   uint32_t GetFrameSampleSize() { return ctx_->frame_size; }
+  AVCodecContext *getCodecContext() { return ctx_; }
 
 private:
   int sample_rate_;    // 默认 48000

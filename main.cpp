@@ -8,6 +8,7 @@
 #include "Source/YUVFileReader.h"
 #include "TransProtocol/RTMPPuller.h"
 #include "TransProtocol/RTMPPusher.h"
+#include "TransProtocol/RTSPPusher.h"
 #include "Util/TimeHelper.h"
 #include <cstdio>
 #include <iostream>
@@ -163,12 +164,14 @@ int pushLocalStream() {
 }
 
 int main() {
-  auto rtmppuller = std::make_shared<TransProtocol::RTMPPuller>();
-  rtmppuller->start();
-  for (;;) {
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-  }
-  exit(1);
+  // auto rtmppuller = std::make_shared<TransProtocol::RTMPPuller>();
+  // rtmppuller->start();
+
+  // std::string userInput;
+  // std::cout << "Press Enter to continue..." << std::endl;
+  // std::getline(std::cin, userInput);
+  // rtmppuller->stop();
+
   std::cout << "Hello, World!" << std::endl;
   auto fileReader =
       Configuration::FileReaderFactory::createFileReader("config.json", "json");
@@ -199,30 +202,36 @@ int main() {
   AVPublishTime::GetInstance()->set_video_pts_strategy(
       AVPublishTime::PTS_RECTIFY);
 
-  auto &msgQueue = Middleware::MsgQueue<
-      FLVAudioMessage, FLVMetaMessage, VideoSequenceMessage, H264RawMessage,
-      AudioSpecificConfigMessage, AudioRawDataMessage>::create();
-  auto rtmpPusher =
-      std::make_shared<TransProtocol::RTMPPusher<decltype(msgQueue)>>(
+  auto &msgQueue =
+      Middleware::MsgQueue<FLVAudioMessage, FLVMetaMessage,
+                           VideoSequenceMessage, H264RawMessage,
+                           AudioSpecificConfigMessage, AudioRawDataMessage,
+                           AudioMessage, VideoMessage>::create();
+  auto rtspPusher =
+      std::make_shared<TransProtocol::RTSPPusher<decltype(msgQueue)>>(
           msgQueue, aacEncoder, h264Encoder, audioResampler);
-  rtmpPusher->start();
+  rtspPusher->start();
+  // auto rtmpPusher =
+  //     std::make_shared<TransProtocol::RTMPPusher<decltype(msgQueue)>>(
+  //         msgQueue, aacEncoder, h264Encoder, audioResampler);
+  // rtmpPusher->start();
 
-  auto yuvFileReader =
-      std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
-  yuvFileReader->init();
-  std::thread yuvThread([&]() {
-    yuvFileReader->start([&](uint8_t *yuv, int size) {
-      rtmpPusher->sendVideoPacket(yuv, size);
-    });
-  });
-  yuvThread.detach();
+   auto yuvFileReader =
+       std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
+   yuvFileReader->init();
+   std::thread yuvThread([&]() {
+     yuvFileReader->start([&](uint8_t *yuv, int size) {
+       rtspPusher->sendVideoPacket(yuv, size);
+     });
+   });
+   yuvThread.detach();
 
   auto pcmFileReader = std::make_shared<Reader::PCMFileReader>();
   pcmFileReader->init();
 
   std::thread pcmThread([&]() {
     pcmFileReader->start([&](uint8_t *pcm, int size) {
-      rtmpPusher->sendAudioPacket(pcm, size);
+      rtspPusher->sendAudioPacket(pcm, size);
     });
   });
   pcmThread.detach();

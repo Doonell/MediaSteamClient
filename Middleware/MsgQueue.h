@@ -21,10 +21,13 @@ using H264RawMessage = std::shared_ptr<Message::H264RawMessage>;
 using AudioSpecificConfigMessage =
     std::shared_ptr<Message::AudioSpecificConfigMessage>;
 using AudioRawDataMessage = std::shared_ptr<Message::AudioRawDataMessage>;
+
+using AudioMessage = std::shared_ptr<Message::AudioMessage>;
+using VideoMessage = std::shared_ptr<Message::VideoMessage>;
 using MessageVariant =
     std::variant<FLVAudioMessage, FLVMetaMessage, VideoSequenceMessage,
                  H264RawMessage, AudioSpecificConfigMessage,
-                 AudioRawDataMessage>;
+                 AudioRawDataMessage, AudioMessage, VideoMessage>;
 namespace Middleware {
 
 struct IReceiver {

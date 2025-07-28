@@ -22,10 +22,7 @@ public:
   bool init();
 
   template <typename H264Callback>
-  int encode(uint8_t *in, H264Callback handleH264) {
-    int out_size = 0;
-    std::shared_ptr<uint8_t[]> out(new uint8_t[VIDEO_NALU_BUF_MAX_SIZE]);
-
+  void encode(uint8_t *in, H264Callback handleH264) {
     frame_->data[0] = in;                      // Y
     frame_->data[1] = in + data_size_;         // U
     frame_->data[2] = in + data_size_ * 5 / 4; // V
@@ -38,22 +35,21 @@ public:
 
     if (ret < 0) {
       std::cout << "Failed to encode!" << std::endl;
-      return -1;
+      return;
     }
 
     if (got_picture == 1) {
       framecnt++;
       // rtmp-flv不带4字节的NALU头00,00,00,01
-      memcpy(out.get(), packet_.data + 4, packet_.size - 4);
-      out_size = packet_.size - 4;
-      handleH264(out, out_size);
+      // memcpy(out.get(), packet_.data + 4, packet_.size - 4);
+      // out_size = packet_.size - 4;
+      handleH264(packet_);
       av_packet_unref(&packet_); // 释放内存 不释放则内存泄漏
-      return 0;
     }
-    std::cout << "Got picture is not 1, got_picture: " << got_picture
-              << std::endl;
-
-    return -1;
+    else {
+        std::cout << "Got picture is not 1, got_picture: " << got_picture
+            << std::endl;
+    }
   }
 
   const AVCodec *find_encoder_by_name(const std::string &codec_name);
@@ -67,6 +63,7 @@ public:
   inline int get_sps_size() { return sps_.size(); }
   inline uint8_t *get_pps_data() { return (uint8_t *)pps_.c_str(); }
   inline int get_pps_size() { return pps_.size(); }
+  AVCodecContext *getCodecContext() { return ctx_; }
 
 private:
   int width_;
@@ -75,7 +72,7 @@ private:
   int bitrate_;
   int gop_;
   int b_frames_;
-  int count;
+  int count = 0;
   int data_size_;
   int framecnt;
 

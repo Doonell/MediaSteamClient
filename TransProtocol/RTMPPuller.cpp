@@ -126,7 +126,10 @@ void RTMPPuller::start() {
   worker_.detach();
 }
 
-void RTMPPuller::stop() { request_exit_thread_ = true; }
+void RTMPPuller::stop() {
+  request_exit_thread_ = true;
+  sync_thread_.wait(std::unique_lock<std::mutex>(mutex_));
+}
 
 void RTMPPuller::readPacketThread() {
   AVPlayTime *play_time = AVPlayTime::GetInstance();
@@ -468,6 +471,7 @@ void RTMPPuller::readPacketThread() {
   }
   free(nalu_buf);
   std::cout << "thread exit" << std::endl;
+  sync_thread_.notify_one();
 }
 
 uint32_t RTMPPuller::getSampleRateByFreqIdx(uint8_t freq_idx) {

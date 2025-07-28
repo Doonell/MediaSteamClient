@@ -1,6 +1,10 @@
 #ifndef _MESSAGE_H_
 #define _MESSAGE_H_
 
+extern "C" {
+#include "libavcodec/avcodec.h"
+}
+
 #include <memory>
 #include <string>
 
@@ -100,6 +104,24 @@ public:
   int with_adts_ = 0;
   unsigned char *data_ = NULL;
   uint32_t pts;
+};
+
+struct AudioMessage {
+  AudioMessage(const AVPacket &data)
+      : data(av_packet_clone(&data), [](AVPacket *p) {
+          if (p)
+            av_packet_unref(p);
+        }) {}
+  std::shared_ptr<AVPacket> data;
+};
+
+struct VideoMessage {
+  VideoMessage(const AVPacket &data)
+      : data(av_packet_clone(&data), [](AVPacket *p) {
+          if (p)
+            av_packet_unref(p);
+        }) {}
+  std::shared_ptr<AVPacket> data;
 };
 } // namespace Message
 #endif // _MESSAGE_H_
