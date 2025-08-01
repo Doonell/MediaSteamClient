@@ -18,7 +18,7 @@ public:
   } PTS_STRATEGY;
 
 public:
-  static AVPublishTime *GetInstance() {
+  static AVPublishTime *getInstance() {
     if (s_publish_time == NULL)
       s_publish_time = new AVPublishTime();
     return s_publish_time;
@@ -94,30 +94,6 @@ public:
 
     return (uint32_t)(t % 0xffffffff);
   }
-  // 各个关键点的时间戳
-  inline const char *getKeyTimeTag() { return "keytime"; }
-  // rtmp位置关键点
-  inline const char *getRtmpTag() { return "keytime:rtmp_publish"; }
-
-  // 发送metadata
-  inline const char *getMetadataTag() { return "keytime:metadata"; }
-  // aac sequence header
-  inline const char *getAacHeaderTag() { return "keytime:aacheader"; }
-  // aac raw data
-  inline const char *getAacDataTag() { return "keytime:aacdata"; }
-  // avc sequence header
-  inline const char *getAvcHeaderTag() { return "keytime:avcheader"; }
-
-  // 第一个i帧
-  inline const char *getAvcIFrameTag() { return "keytime:avciframe"; }
-  // 第一个非i帧
-  inline const char *getAvcFrameTag() { return "keytime:avcframe"; }
-  // 音视频解码
-  inline const char *getAcodecTag() { return "keytime:acodec"; }
-  inline const char *getVcodecTag() { return "keytime:vcodec"; }
-  // 音视频捕获
-  inline const char *getAInTag() { return "keytime:ain"; }
-  inline const char *getVInTag() { return "keytime:vint"; }
 
 private:
   int64_t getCurrentTimeMsec() {
@@ -163,7 +139,7 @@ private:
 // 用来debug rtmp拉流的关键时间点
 class AVPlayTime {
 public:
-  static AVPlayTime *GetInstance() {
+  static AVPlayTime *getInstance() {
     if (s_play_time == NULL)
       s_play_time = new AVPlayTime();
     return s_play_time;

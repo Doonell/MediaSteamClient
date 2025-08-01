@@ -27,39 +27,35 @@ using namespace TimeHelper;
 int printLocalDevicesList() {
   av_log_set_level(AV_LOG_INFO);
   avdevice_register_all();
-  // ==== ?????????豸???? Windows DirectShow ????? ====
+
   AVInputFormat *inputFmt = av_find_input_format("dshow");
 
-  // ????????????????????豸
   AVDictionary *options = nullptr;
   av_dict_set(&options, "list_devices", "true", 0);
 
   AVFormatContext *inputCtx = nullptr;
   if (avformat_open_input(&inputCtx, "video=dummy", inputFmt, &options) != 0) {
-    std::cerr << "??????????豸\n";
     return -1;
   }
 }
 
-int pushLocalStream() {
+template <typename CallBack> int pushLocalStream(CallBack handleVideoPacket) {
   av_log_set_level(AV_LOG_INFO);
   avdevice_register_all();
-  // ==== ?????????豸???? Windows DirectShow ????? ====
+
   AVInputFormat *inputFmt = av_find_input_format("dshow");
   const char *deviceName = "video=Logi C270 HD WebCam"; // ?滻?????????????
 
   AVFormatContext *inputCtx = nullptr;
   if (avformat_open_input(&inputCtx, deviceName, inputFmt, nullptr) != 0) {
-    std::cerr << "??????????豸\n";
     return -1;
   }
 
   if (avformat_find_stream_info(inputCtx, nullptr) < 0) {
-    std::cerr << "???????????????\n";
+    std::cerr << "未找到视频流\n";
     return -1;
   }
 
-  // ==== ???????? ====
   int videoStreamIndex = -1;
   for (unsigned i = 0; i < inputCtx->nb_streams; ++i) {
     if (inputCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
@@ -68,19 +64,17 @@ int pushLocalStream() {
     }
   }
   if (videoStreamIndex == -1) {
-    std::cerr << "??????????\n";
+    std::cerr << "未找到视频流 videoStreamIndex: " << videoStreamIndex << "\n";
     return -1;
   }
 
-  // ==== ??????????? ====
   AVCodecParameters *codecPar = inputCtx->streams[videoStreamIndex]->codecpar;
   const AVCodec *decoder = avcodec_find_decoder(codecPar->codec_id);
   AVCodecContext *decoderCtx = avcodec_alloc_context3(decoder);
-  // decoderCtx???decoderCtx->pix_fmt == YUV????RGB
+  // decoderCtx.decoderCtx->pix_fmt == YUV or RGB
   avcodec_parameters_to_context(decoderCtx, codecPar);
   avcodec_open2(decoderCtx, decoder, nullptr);
 
-  // ==== ?????????????H.264??====
   const AVCodec *encoder = avcodec_find_encoder(AV_CODEC_ID_H264);
   AVCodecContext *encoderCtx = avcodec_alloc_context3(encoder);
   encoderCtx->height = decoderCtx->height;
@@ -96,7 +90,6 @@ int pushLocalStream() {
 
   avcodec_open2(encoderCtx, encoder, nullptr);
 
-  // ==== ???????? ====
   FILE *outFile = fopen("output1.h264", "wb");
 
   AVPacket *packet = av_packet_alloc();
@@ -106,14 +99,14 @@ int pushLocalStream() {
   frame->height = encoderCtx->height;
   av_frame_get_buffer(frame, 32);
 
-  // ==== ???????????? MJPEG -> YUV420P??====
+  // ==== MJPEG -> YUV420P ====
   SwsContext *swsCtx =
       sws_getContext(decoderCtx->width, decoderCtx->height, decoderCtx->pix_fmt,
                      encoderCtx->width, encoderCtx->height, encoderCtx->pix_fmt,
                      SWS_BILINEAR, nullptr, nullptr, nullptr);
 
   int frameCount = 0;
-  while (frameCount < 100 * 30) { // ??? 100 ?
+  while (frameCount < 100 * 30) {
     if (av_read_frame(inputCtx, packet) < 0)
       break;
     if (packet->stream_index != videoStreamIndex) {
@@ -121,10 +114,8 @@ int pushLocalStream() {
       continue;
     }
 
-    // ????
     avcodec_send_packet(decoderCtx, packet);
     while (avcodec_receive_frame(decoderCtx, frame) == 0) {
-      // ??????
       AVFrame *swsFrame = av_frame_alloc();
       swsFrame->format = encoderCtx->pix_fmt;
       swsFrame->width = encoderCtx->width;
@@ -136,21 +127,19 @@ int pushLocalStream() {
 
       swsFrame->pts = frameCount++;
 
-      // ????
       avcodec_send_frame(encoderCtx, swsFrame);
       AVPacket *encPkt = av_packet_alloc();
       while (avcodec_receive_packet(encoderCtx, encPkt) == 0) {
         fwrite(encPkt->data, 1, encPkt->size, outFile);
+        handleVideoPacket(*encPkt); // 处理视频包
         av_packet_unref(encPkt);
       }
-      av_packet_free(&encPkt);
       av_frame_free(&swsFrame);
     }
 
     av_packet_unref(packet);
   }
 
-  // ==== ???? ====
   fclose(outFile);
   av_frame_free(&frame);
   av_packet_free(&packet);
@@ -159,7 +148,6 @@ int pushLocalStream() {
   avcodec_free_context(&encoderCtx);
   avformat_close_input(&inputCtx);
 
-  std::cout << "??????\n";
   return 0;
 }
 
@@ -196,45 +184,45 @@ int main() {
   double audio_frame_duration =
       1000.0 / aacEncoder->get_sample_rate() * aacEncoder->GetFrameSampleSize();
 
-  AVPublishTime::GetInstance()->set_audio_frame_duration(audio_frame_duration);
-  AVPublishTime::GetInstance()->set_audio_pts_strategy(
-      AVPublishTime::PTS_RECTIFY);
-  AVPublishTime::GetInstance()->set_video_pts_strategy(
-      AVPublishTime::PTS_RECTIFY);
+  AVPublishTime::getInstance()->set_audio_frame_duration(audio_frame_duration);
 
   auto &msgQueue =
       Middleware::MsgQueue<FLVAudioMessage, FLVMetaMessage,
                            VideoSequenceMessage, H264RawMessage,
                            AudioSpecificConfigMessage, AudioRawDataMessage,
                            AudioMessage, VideoMessage>::create();
+
   auto rtspPusher =
       std::make_shared<TransProtocol::RTSPPusher<decltype(msgQueue)>>(
           msgQueue, aacEncoder, h264Encoder, audioResampler);
   rtspPusher->start();
-  // auto rtmpPusher =
-  //     std::make_shared<TransProtocol::RTMPPusher<decltype(msgQueue)>>(
-  //         msgQueue, aacEncoder, h264Encoder, audioResampler);
-  // rtmpPusher->start();
 
-   auto yuvFileReader =
-       std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
-   yuvFileReader->init();
-   std::thread yuvThread([&]() {
-     yuvFileReader->start([&](uint8_t *yuv, int size) {
-       rtspPusher->sendVideoPacket(yuv, size);
-     });
-   });
-   yuvThread.detach();
+  pushLocalStream(
+      [&](AVPacket &packet) { rtspPusher->sendRawVideoPacket(packet); });
+  auto rtmpPusher =
+      std::make_shared<TransProtocol::RTMPPusher<decltype(msgQueue)>>(
+          msgQueue, aacEncoder, h264Encoder, audioResampler);
+  rtmpPusher->start();
 
-  auto pcmFileReader = std::make_shared<Reader::PCMFileReader>();
-  pcmFileReader->init();
+  // auto yuvFileReader =
+  //     std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
+  // yuvFileReader->init();
+  // std::thread yuvThread([&]() {
+  //   yuvFileReader->start([&](uint8_t *yuv, int size) {
+  //     rtspPusher->sendVideoPacket(yuv, size);
+  //   });
+  // });
+  // yuvThread.detach();
 
-  std::thread pcmThread([&]() {
-    pcmFileReader->start([&](uint8_t *pcm, int size) {
-      rtspPusher->sendAudioPacket(pcm, size);
-    });
-  });
-  pcmThread.detach();
+  // auto pcmFileReader = std::make_shared<Reader::PCMFileReader>();
+  // pcmFileReader->init();
+
+  // std::thread pcmThread([&]() {
+  //   pcmFileReader->start([&](uint8_t *pcm, int size) {
+  //     rtspPusher->sendAudioPacket(pcm, size);
+  //   });
+  // });
+  // pcmThread.detach();
 
   while (1) {
     ::sleep(1);

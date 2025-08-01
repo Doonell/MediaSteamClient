@@ -34,15 +34,15 @@ public:
     int nb_samples = 1024;
     std::array<uint8_t, PCM_BUF_MAX_SIZE> pcm_buf_;
     pcm_total_duration_ = 0;
-    pcm_start_time_ = Time::TimesUtil::GetTimeMillisecond();
+    pcm_start_time_ = Time::TimesUtil::getTimeMillisecond();
     LOG_INFO("into loop while");
     while (true) {
       if (readPcmFile(pcm_buf_.data(), nb_samples) == 0) {
         if (!is_first_frame_) {
           is_first_frame_ = true;
           LOG_INFO("%s:t%u",
-                   TimeHelper::AVPublishTime::GetInstance()->getAInTag(),
-                   TimeHelper::AVPublishTime::GetInstance()->getCurrenTime());
+                   TimeHelper::AVPublishTime::getInstance()->getAInTag(),
+                   TimeHelper::AVPublishTime::getInstance()->getCurrenTime());
         }
         handlePcm(pcm_buf_.data(), nb_samples * 4); // 2通道 s16格式
       }

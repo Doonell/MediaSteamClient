@@ -48,7 +48,7 @@ using namespace std::chrono;
 namespace Time {
 class TimesUtil {
 public:
-  static inline int64_t GetTimeMillisecond() {
+  static inline int64_t getTimeMillisecond() {
 #ifdef _WIN32
     return (int64_t)GetTickCount();
 #else

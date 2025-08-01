@@ -10,12 +10,13 @@ extern "C" {
 };
 #endif
 
+#include "IAudioEncoder.h"
 namespace Encoder {
 
 // 最大为13bit长度(8191), +64 只是防止字节对齐
 const int AAC_BUF_MAX_LENGTH = 8291 + 64;
 
-class AACEncoder {
+class AACEncoder : public IAudioEncoder {
 public:
   AACEncoder(int sample_rate = 48000, int channels = 2,
              int bitrate = 128 * 1024, int channel_layout = 3);

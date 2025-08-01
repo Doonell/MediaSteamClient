@@ -30,7 +30,7 @@ int YUVFileReader::openYuvFile(const char *file_name) {
 }
 
 int YUVFileReader::readYuvFile(uint8_t *yuv_buf, int32_t yuv_buf_size) {
-  int64_t cur_time = Time::TimesUtil::GetTimeMillisecond();
+  int64_t cur_time = Time::TimesUtil::getTimeMillisecond();
   int64_t dif = cur_time - yuv_start_time_;
   if ((int64_t)yuv_total_duration_ > dif)
     return -1;

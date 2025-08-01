@@ -36,7 +36,7 @@ public:
   ~RTMPPusher() = default;
 
   void start() {
-    AVPublishTime::GetInstance()->Rest();
+    AVPublishTime::getInstance()->Rest();
     rtmpProtocol_->connect();
     msgQueue_.addReceiver(
         std::static_pointer_cast<Middleware::IReceiver>(shared_from_this()));
@@ -69,7 +69,7 @@ public:
             new uint8_t[VIDEO_NALU_BUF_MAX_SIZE]);
         memcpy(nalu_buf.get(), packet.data + 4, packet.size - 4);
         nalu_buf_size = packet.size - 4;
-        auto pts = AVPublishTime::GetInstance()->get_video_pts();
+        auto pts = AVPublishTime::getInstance()->get_video_pts();
         auto nalu_type = nalu_buf[0] & 0x1f;
         auto rawData = std::make_shared<Message::H264RawMessage>(
             nalu_buf, nalu_buf_size, nalu_type, pts);
@@ -113,7 +113,7 @@ public:
             if (packet.size > 0) {
               auto rawData = std::make_shared<Message::AudioRawDataMessage>(
                   packet.size + 2);
-              rawData->pts = AVPublishTime::GetInstance()->get_audio_pts();
+              rawData->pts = AVPublishTime::getInstance()->get_audio_pts();
               rawData->data_[0] = 0xaf;
               rawData->data_[1] = 0x01;
               memcpy(&rawData->data_[2], packet.data, packet.size);

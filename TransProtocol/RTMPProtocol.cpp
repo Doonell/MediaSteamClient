@@ -187,7 +187,7 @@ int RTMPProtocol::sendAudioRawData(uint8_t *data, int size, uint32_t pts) {
   //                          SEQUENCE_HEADER) // AudioSpecificConfig
   //     .setAudioData(data, size)
   //     .buildAudioRawData();
-  // timestamp_ = Time::TimesUtil::GetTimeMillisecond();
+  // timestamp_ = Time::TimesUtil::getTimeMillisecond();
 
   RTMPPacketBuilder rtmpPacket;
   rtmpPacket.chunkAudioChannel()
@@ -225,7 +225,7 @@ int RTMPProtocol::sendH264SequenceHeader(uint8_t *sps, uint32_t sps_size,
       .setPpsLength(pps_size)
       .setPpsData(pps, pps_size)
       .build();
-  timestamp_ = Time::TimesUtil::GetTimeMillisecond();
+  timestamp_ = Time::TimesUtil::getTimeMillisecond();
   return sendPacket(RTMP_PACKET_TYPE_VIDEO, h264SeqenceHeader.data(),
                     h264SeqenceHeader.size(), 0);
 }

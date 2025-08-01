@@ -132,10 +132,10 @@ void RTMPPuller::stop() {
 }
 
 void RTMPPuller::readPacketThread() {
-  AVPlayTime *play_time = AVPlayTime::GetInstance();
+  AVPlayTime *play_time = AVPlayTime::getInstance();
 
   RTMPPacket packet = {0};
-  int64_t cur_time = TimesUtil::GetTimeMillisecond();
+  int64_t cur_time = TimesUtil::getTimeMillisecond();
   int64_t pre_time = cur_time;
   static FILE *rtmp_dump_h264 = NULL;
 
@@ -154,17 +154,17 @@ void RTMPPuller::readPacketThread() {
           continue;
         }
       }
-      cur_time = TimesUtil::GetTimeMillisecond();
+      cur_time = TimesUtil::getTimeMillisecond();
       int64_t t = cur_time - pre_time;
       pre_time = cur_time;
       if (!rtmpProtocol_->readPacket(&packet)) {
         LOG_INFO("RTMP_ReadPacket failed");
         continue;
       }
-      int64_t diff = TimesUtil::GetTimeMillisecond() - cur_time;
+      int64_t diff = TimesUtil::getTimeMillisecond() - cur_time;
       if (rtmpProtocol_->isReadCompleted(&packet)) // 检测是不是整个包组好了
       {
-        diff = TimesUtil::GetTimeMillisecond() - cur_time;
+        diff = TimesUtil::getTimeMillisecond() - cur_time;
         if (diff > 10) {
           bool keyframe = false;
           if (packet.m_packetType == RTMP_PACKET_TYPE_VIDEO) {
@@ -353,8 +353,8 @@ void RTMPPuller::readPacketThread() {
             }
           }
         } else if (packet.m_packetType == RTMP_PACKET_TYPE_AUDIO) {
-          static int64_t s_is_pre_ready = TimesUtil::GetTimeMillisecond();
-          cur_time = TimesUtil::GetTimeMillisecond();
+          static int64_t s_is_pre_ready = TimesUtil::getTimeMillisecond();
+          cur_time = TimesUtil::getTimeMillisecond();
           s_is_pre_ready = cur_time;
 
           bool sequence = (0x00 == packet.m_body[1]);

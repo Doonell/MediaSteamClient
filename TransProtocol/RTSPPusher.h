@@ -42,7 +42,7 @@ public:
              const std::shared_ptr<Encoder::AACEncoder> &audioEncoder,
              const std::shared_ptr<Encoder::H264Encoder> &videoEncoder,
              const std::shared_ptr<Encoder::AudioS16Resampler> &audioResampler,
-             std::string url = "rtsp://192.168.0.102/live/livestream/sub",
+             std::string url = "rtsp://192.168.133.129/live/livestream/sub",
              std::string rtsp_transport = "tcp")
       : msgQueue_(msgQueue), audioEncoder_(audioEncoder),
         videoEncoder_(videoEncoder), audioResampler_(audioResampler),
@@ -51,7 +51,7 @@ public:
   ~RTSPPusher() {
     if (fmt_ctx_) {
       avformat_free_context(fmt_ctx_);
-      fmt_ctx_ = NULL;
+      fmt_ctx_ = nullptr;
     }
   }
 
@@ -64,17 +64,20 @@ public:
       return false;
     }
     // 分配AVFormatContext
-    ret = avformat_alloc_output_context2(&fmt_ctx_, NULL, "rtsp", url_.c_str());
+    ret = avformat_alloc_output_context2(&fmt_ctx_, nullptr, "rtsp",
+                                         url_.c_str());
     if (ret < 0) {
       LOG_ERROR("avformat_alloc_output_context2 failed:%s", av_err2str(ret));
       return false;
     }
+
     ret = av_opt_set(fmt_ctx_->priv_data, "rtsp_transport",
                      rtsp_transport_.c_str(), 0);
     if (ret < 0) {
       LOG_ERROR("av_opt_set failed:%s", av_err2str(ret));
       return false;
     }
+
     fmt_ctx_->interrupt_callback.callback = decode_interrupt_cb;
     fmt_ctx_->interrupt_callback.opaque = this;
     if (!create_video_stream(videoEncoder_->getCodecContext())) {
@@ -104,7 +107,7 @@ public:
     }
     ResetTimeout();
     // 连接服务器
-    int ret = avformat_write_header(fmt_ctx_, NULL);
+    int ret = avformat_write_header(fmt_ctx_, nullptr);
     if (ret < 0) {
       char str_error[512] = {0};
       av_strerror(ret, str_error, sizeof(str_error) - 1);
@@ -124,6 +127,13 @@ public:
     });
   }
 
+  void sendRawVideoPacket(AVPacket &packet) {
+    if (packet.size > 0) {
+      auto videoMessage = std::make_shared<Message::VideoMessage>(packet);
+      msgQueue_.publish(videoMessage);
+    }
+  }
+
   void sendAudioPacket(uint8_t *pcm, int size) {
     auto ret = audioResampler_->sendFrame(pcm, size);
     if (ret < 0) {
@@ -140,7 +150,7 @@ public:
     }
 
     for (int i = 0; i < resampled_frames.size(); i++) {
-      int64_t pts = (int64_t)AVPublishTime::GetInstance()->get_audio_pts();
+      int64_t pts = (int64_t)AVPublishTime::getInstance()->get_audio_pts();
       resampled_frames[i].get()->pts = pts;
       audioEncoder_->encode(resampled_frames[i].get(), [&](AVPacket &packet) {
         if (packet.size > 0) {
@@ -152,14 +162,14 @@ public:
   }
 
   void scenario<AudioMessage>::handle(const AudioMessage &t) override {
-    std::cout << "Received AudioMessage with data size: " << t->data->size
-              << std::endl;
+    // std::cout << "Received AudioMessage with data size: " << t->data->size
+    //           << std::endl;
     sendPacket(t->data.get(), E_AUDIO_TYPE);
   }
 
   void scenario<VideoMessage>::handle(const VideoMessage &t) override {
-    std::cout << "Received VideoMessage with data size: " << t->data->size
-              << std::endl;
+    // std::cout << "Received VideoMessage with data size: " << t->data->size
+    //           << std::endl;
     sendPacket(t->data.get(), E_VIDEO_TYPE);
   }
 
@@ -189,6 +199,18 @@ public:
     pkt->pts = av_rescale_q(pkt->pts, src_time_base, dst_time_base);
     pkt->duration = 0;
     ResetTimeout();
+    if (current_time_ == 0 && previous_time_ == 0) {
+      previous_time_ = TimesUtil::getTimeMillisecond();
+    }
+    current_time_ = TimesUtil::getTimeMillisecond();
+    if (current_time_ - previous_time_ > 1000) {
+      previous_time_ = current_time_;
+      std::cout << "Cumulative data size in last second: "
+                << cumulative_data_size_ * 8 / 1024 << " kbps" << std::endl;
+      cumulative_data_size_ = 0;      // 重置累计数据大小
+      previous_time_ = current_time_; // 重置上一帧时间
+    }
+    cumulative_data_size_ += pkt->size;
     int ret = av_write_frame(fmt_ctx_, pkt);
     if (ret < 0) {
       LOG_INFO("av_write_frame failed:%s",
@@ -218,7 +240,7 @@ public:
       return false;
     }
     // 添加视频流
-    AVStream *vs = avformat_new_stream(fmt_ctx_, NULL);
+    AVStream *vs = avformat_new_stream(fmt_ctx_, nullptr);
     if (!vs) {
       LOG_ERROR("avformat_new_stream failed");
       return false;
@@ -245,7 +267,7 @@ public:
       return false;
     }
 
-    AVStream *as = avformat_new_stream(fmt_ctx_, NULL);
+    AVStream *as = avformat_new_stream(fmt_ctx_, nullptr);
     if (!as) {
       LOG_ERROR("avformat_new_stream failed");
       return false;
@@ -264,17 +286,17 @@ public:
   }
 
   int64_t GetBlockTime() {
-    return Time::TimesUtil::GetTimeMillisecond() - pre_time_;
+    return Time::TimesUtil::getTimeMillisecond() - pre_time_;
   }
 
   int GetTimeout() { return timeout_; }
 
   void ResetTimeout() {
-    pre_time_ = TimesUtil::GetTimeMillisecond(); // 重置为当前时间
+    pre_time_ = TimesUtil::getTimeMillisecond(); // 重置为当前时间
   }
 
   bool IsTimeout() {
-    if (TimesUtil::GetTimeMillisecond() - pre_time_ > timeout_) {
+    if (TimesUtil::getTimeMillisecond() - pre_time_ > timeout_) {
       return true; // 超时
     }
     return false;
@@ -287,26 +309,23 @@ private:
   std::shared_ptr<Encoder::AudioS16Resampler> audioResampler_;
   std::string url_ = "";
   std::string rtsp_transport_ = "rtsp_transport";
-  // 默认23.2ms 44.1khz  1024*1000ms/44100=23.21995649ms
+
   double audio_frame_duration_ = 23.21995649;
-  // 40ms 视频帧率为25的  ， 1000ms/25=40ms
   double video_frame_duration_ = 40;
-  // 处理超时
   int timeout_ = 5000;
 
-  // 整个输出流的上下文
-  AVFormatContext *fmt_ctx_ = NULL;
-  // 视频编码器上下文
-  AVCodecContext *video_ctx_ = NULL;
-  // 音频频编码器上下文
-  AVCodecContext *audio_ctx_ = NULL;
-  // 流成分
-  AVStream *video_stream_ = NULL;
+  AVFormatContext *fmt_ctx_ = nullptr;
+  AVCodecContext *video_ctx_ = nullptr;
+  AVCodecContext *audio_ctx_ = nullptr;
+  AVStream *video_stream_ = nullptr;
   int video_index_ = -1;
-  AVStream *audio_stream_ = NULL;
+  AVStream *audio_stream_ = nullptr;
   int audio_index_ = -1;
 
-  int64_t pre_time_ = 0; // 记录调用ffmpeg api之前的时间
+  int64_t pre_time_ = 0;              // 记录调用ffmpeg api之前的时间
+  uint64_t cumulative_data_size_ = 0; // 累计发送数据大小
+  uint64_t current_time_ = 0;         // 当前时间
+  uint64_t previous_time_ = 0;        // 上一帧时间
 };
 
 static int decode_interrupt_cb(void *ctx) {

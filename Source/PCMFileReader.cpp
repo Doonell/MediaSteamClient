@@ -30,15 +30,15 @@ int PCMFileReader::openPcmFile() {
 }
 
 int PCMFileReader::readPcmFile(uint8_t *pcm_buf, int32_t nb_samples) {
-  int64_t cur_time = Time::TimesUtil::GetTimeMillisecond();
+  int64_t cur_time = Time::TimesUtil::getTimeMillisecond();
   int64_t dif = cur_time - pcm_start_time_;
 
   if ((int64_t)pcm_total_duration_ > dif)
     return -1;
 
   if (!pcm_fp_) {
-      std::cout << "pcm file is null \n";
-      return -1;
+    std::cout << "pcm file is null \n";
+    return -1;
   }
 
   size_t ret = ::fread(pcm_buf, 1, nb_samples * 4, pcm_fp_);

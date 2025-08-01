@@ -10,11 +10,12 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
+#include "IVideoEncoder.h"
 #include <functional>
 #include <string>
 namespace Encoder {
 
-class H264Encoder {
+class H264Encoder : public IVideoEncoder {
 public:
   H264Encoder(int width = 720, int height = 480, int fps = 25,
               int bitrate = 512 * 1024, int gop = 25, int b_frames = 0);
@@ -45,10 +46,9 @@ public:
       // out_size = packet_.size - 4;
       handleH264(packet_);
       av_packet_unref(&packet_); // 释放内存 不释放则内存泄漏
-    }
-    else {
-        std::cout << "Got picture is not 1, got_picture: " << got_picture
-            << std::endl;
+    } else {
+      std::cout << "Got picture is not 1, got_picture: " << got_picture
+                << std::endl;
     }
   }
 

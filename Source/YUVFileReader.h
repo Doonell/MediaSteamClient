@@ -36,7 +36,7 @@ public:
     yuv_buf_ = new uint8_t[yuv_buf_size];
 
     yuv_total_duration_ = 0;
-    yuv_start_time_ = Time::TimesUtil::GetTimeMillisecond();
+    yuv_start_time_ = Time::TimesUtil::getTimeMillisecond();
     LOG_INFO("into loop while");
 
     while (true) {
@@ -45,8 +45,8 @@ public:
       if (readYuvFile(yuv_buf_, yuv_buf_size) == 0) {
         if (!is_first_frame_) {
           is_first_frame_ = true;
-          LOG_INFO("%s:t%u", AVPublishTime::GetInstance()->getVInTag(),
-                   AVPublishTime::GetInstance()->getCurrenTime());
+          LOG_INFO("%s:t%u", AVPublishTime::getInstance()->getVInTag(),
+                   AVPublishTime::getInstance()->getCurrenTime());
         }
         handleYUV(yuv_buf_, yuv_buf_size);
       }
