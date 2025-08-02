@@ -186,11 +186,7 @@ int main() {
 
   AVPublishTime::getInstance()->set_audio_frame_duration(audio_frame_duration);
 
-  auto &msgQueue =
-      Middleware::MsgQueue<FLVAudioMessage, FLVMetaMessage,
-                           VideoSequenceMessage, H264RawMessage,
-                           AudioSpecificConfigMessage, AudioRawDataMessage,
-                           AudioMessage, VideoMessage>::create();
+  auto &msgQueue = MessagesQueue::create();
 
   auto rtspPusher =
       std::make_shared<TransProtocol::RTSPPusher<decltype(msgQueue)>>(
