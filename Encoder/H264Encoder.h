@@ -12,7 +12,9 @@ extern "C" {
 #endif
 #include "IVideoEncoder.h"
 #include <functional>
+#include <iostream>
 #include <string>
+
 namespace Encoder {
 
 class H264Encoder : public IVideoEncoder {
@@ -22,8 +24,7 @@ public:
   ~H264Encoder();
   bool init();
 
-  template <typename H264Callback>
-  void encode(uint8_t *in, H264Callback handleH264) {
+  void encode(uint8_t *in, std::function<void(AVPacket &)> handleH264) {
     frame_->data[0] = in;                      // Y
     frame_->data[1] = in + data_size_;         // U
     frame_->data[2] = in + data_size_ * 5 / 4; // V

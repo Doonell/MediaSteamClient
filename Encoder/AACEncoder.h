@@ -11,6 +11,8 @@ extern "C" {
 #endif
 
 #include "IAudioEncoder.h"
+#include <iostream>
+#include <memory>
 namespace Encoder {
 
 // 最大为13bit长度(8191), +64 只是防止字节对齐
@@ -23,8 +25,8 @@ public:
   ~AACEncoder();
   bool init();
 
-  template <typename AACCallback>
-  void encode(AVFrame *frame, const AACCallback &handleAACcallback) {
+  void encode(AVFrame *frame,
+              std::function<void(AVPacket &)> handleAACcallback) {
     int got_output = 0;
     std::shared_ptr<uint8_t[]> out(new uint8_t[AAC_BUF_MAX_LENGTH]);
 

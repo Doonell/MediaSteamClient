@@ -4,6 +4,7 @@
 #include "Encoder/H264Encoder.h"
 #include "Logger/Logger.h"
 #include "Middleware/MsgQueue.h"
+#include "Source/LocalCamera.h"
 #include "Source/PCMFileReader.h"
 #include "Source/YUVFileReader.h"
 #include "TransProtocol/RTMPPuller.h"

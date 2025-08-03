@@ -119,12 +119,13 @@ public:
   }
 
   void sendVideoPacket(uint8_t *yuv, int size) {
-    videoEncoder_->encode(yuv, [&](AVPacket &packet) {
+    std::function<void(AVPacket &)> handleH264Callback = [&](AVPacket &packet) {
       if (packet.size > 0) {
         auto videoMessage = std::make_shared<Message::VideoMessage>(packet);
         msgQueue_.publish(videoMessage);
       }
-    });
+    };
+    videoEncoder_->encode(yuv, handleH264Callback);
   }
 
   void sendRawVideoPacket(AVPacket &packet) {

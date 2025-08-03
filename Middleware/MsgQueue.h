@@ -28,10 +28,6 @@ using MessageVariant =
     std::variant<FLVAudioMessage, FLVMetaMessage, VideoSequenceMessage,
                  H264RawMessage, AudioSpecificConfigMessage,
                  AudioRawDataMessage, AudioMessage, VideoMessage>;
-using MessagesQueue =
-    Middleware::MsgQueue<FLVAudioMessage, FLVMetaMessage, VideoSequenceMessage,
-                         H264RawMessage, AudioSpecificConfigMessage,
-                         AudioRawDataMessage, AudioMessage, VideoMessage>;
 namespace Middleware {
 
 struct IReceiver {
@@ -110,5 +106,10 @@ private:
 };
 
 } // namespace Middleware
+
+using MessagesQueue =
+    Middleware::MsgQueue<FLVAudioMessage, FLVMetaMessage, VideoSequenceMessage,
+                         H264RawMessage, AudioSpecificConfigMessage,
+                         AudioRawDataMessage, AudioMessage, VideoMessage>;
 
 #endif // _MSG_QUEUE_H_

@@ -1,6 +1,7 @@
 #ifndef _IVIDEO_ENCODER_H_
 #define _IVIDEO_ENCODER_H_
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -12,6 +13,7 @@ class IVideoEncoder {
 public:
   virtual ~IVideoEncoder() = default;
 
+  virtual void encode(uint8_t *, std::function<void(AVPacket &)>) = 0;
   virtual int get_width() = 0;
   virtual int get_height() = 0;
   virtual double get_framerate() = 0;

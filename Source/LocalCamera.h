@@ -6,30 +6,34 @@
 #include <thread>
 
 extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavdevice/avdevice.h>
 #include <libavformat/avformat.h>
 #include <libavutil/imgutils.h>
+#include <libswscale/swscale.h>
 }
 
-class LocalCamera {
+#include "../Encoder/IVideoEncoder.h"
+class LocalCamera : public IVideoEncoder {
 public:
-  LocalCamera();
-  ~LocalCamera();
+  LocalCamera() {}
+  ~LocalCamera() = default;
 
-  template <typename CallBack> void init(CallBack handleVideoPacket) {
+  void encode(std::function<void(AVPacket &)> handleVideoPacket) {
     av_log_set_level(AV_LOG_INFO);
     avdevice_register_all();
 
     AVInputFormat *inputFmt = av_find_input_format("dshow");
-    const char *deviceName = "video=Logi C270 HD WebCam"; // ËÆæÂ§áÂêçÁß∞
+    const char *deviceName = "video=Logi C270 HD WebCam"; // …Ë±∏√˚≥∆
 
     AVFormatContext *inputCtx = nullptr;
     if (avformat_open_input(&inputCtx, deviceName, inputFmt, nullptr) != 0) {
-      return -1;
+      return;
     }
 
     if (avformat_find_stream_info(inputCtx, nullptr) < 0) {
-      std::cerr << "Êú™ÊâæÂà∞ËßÜÈ¢ëÊµÅ\n";
-      return -1;
+      std::cerr << "Œ¥’“µΩ ”∆µ¡˜\n";
+      return;
     }
 
     int videoStreamIndex = -1;
@@ -40,9 +44,9 @@ public:
       }
     }
     if (videoStreamIndex == -1) {
-      std::cerr << "Êú™ÊâæÂà∞ËßÜÈ¢ëÊµÅ videoStreamIndex: " << videoStreamIndex
+      std::cerr << "Œ¥’“µΩ ”∆µ¡˜ videoStreamIndex: " << videoStreamIndex
                 << "\n";
-      return -1;
+      return;
     }
 
     AVCodecParameters *codecPar = inputCtx->streams[videoStreamIndex]->codecpar;
@@ -64,8 +68,30 @@ public:
     if (encoder->id == AV_CODEC_ID_H264) {
       av_opt_set(videoCodecCtx_->priv_data, "preset", "ultrafast", 0);
     }
-
+    videoCodecCtx_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     avcodec_open2(videoCodecCtx_, encoder, nullptr);
+    // ∂¡»°sps pps –≈œ¢
+    if (videoCodecCtx_->extradata) {
+      LOG_INFO("extradata_size: " << videoCodecCtx_->extradata_size);
+      // µ⁄“ª∏ˆŒ™sps 7
+      // µ⁄∂˛∏ˆŒ™pps 8
+      uint8_t *sps = videoCodecCtx_->extradata + 4; // ÷±Ω”Ã¯µΩ ˝æ›
+      int sps_len = 0;
+      uint8_t *pps = NULL;
+      int pps_len = 0;
+      uint8_t *data = videoCodecCtx_->extradata + 4;
+      for (int i = 0; i < videoCodecCtx_->extradata_size - 4; ++i) {
+        if (0 == data[i] && 0 == data[i + 1] && 0 == data[i + 2] &&
+            1 == data[i + 3]) {
+          pps = &data[i + 4];
+          break;
+        }
+      }
+      sps_len = int(pps - sps) - 4; // 4 «00 00 00 01’º”√µƒ◊÷Ω⁄
+      pps_len = videoCodecCtx_->extradata_size - 4 * 2 - sps_len;
+      sps_.append(sps, sps + sps_len);
+      pps_.append(pps, pps + pps_len);
+    }
 
     FILE *outFile = fopen("output1.h264", "wb");
 
@@ -108,12 +134,11 @@ public:
         AVPacket *encPkt = av_packet_alloc();
         while (avcodec_receive_packet(videoCodecCtx_, encPkt) == 0) {
           fwrite(encPkt->data, 1, encPkt->size, outFile);
-          handleVideoPacket(*encPkt); // Â§ÑÁêÜËßÜÈ¢ëÂåÖ
+          handleVideoPacket(*encPkt); // ¥¶¿Ì ”∆µ∞¸
           av_packet_unref(encPkt);
         }
         av_frame_free(&swsFrame);
       }
-
       av_packet_unref(packet);
     }
 
@@ -125,21 +150,31 @@ public:
     avcodec_free_context(&videoCodecCtx_);
     avformat_close_input(&inputCtx);
 
-    return 0;
-  };
+    return;
+  }
 
-  void start();
-  void stop();
+  int get_width() { return videoCodecCtx_ ? videoCodecCtx_->width : 0; }
+  int get_height() { return videoCodecCtx_ ? videoCodecCtx_->height : 0; }
+  double get_framerate() {
+    return videoCodecCtx_->framerate.num / videoCodecCtx_->framerate.den;
+  }
+  int64_t get_bit_rate() {
+    return videoCodecCtx_ ? videoCodecCtx_->bit_rate : 0;
+  }
+  uint8_t *get_sps_data() { return sps_.c_str(); }
+  int get_sps_size() { return sps_.size(); }
+  inline uint8_t *get_pps_data() { return pps_.c_str(); }
+  int get_pps_size() { return pps_.size(); }
+  AVCodecContext *getCodecContext() { return videoCodecCtx_; }
 
 private:
-  void captureFrame();
-  void processFrame(AVFrame *frame);
-
   std::string deviceName_;
   AVFormatContext *formatCtx_;
   AVCodecContext *videoCodecCtx_;
   std::thread captureThread_;
   bool isCapturing_;
+  std::string sps_;
+  std::string pps_;
 };
 
 #endif // _LOCAL_CAMERA_H_
