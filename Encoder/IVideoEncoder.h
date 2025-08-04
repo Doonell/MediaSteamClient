@@ -13,6 +13,7 @@ class IVideoEncoder {
 public:
   virtual ~IVideoEncoder() = default;
 
+  virtual bool init() = 0;
   virtual void encode(uint8_t *, std::function<void(AVPacket &)>) = 0;
   virtual int get_width() = 0;
   virtual int get_height() = 0;

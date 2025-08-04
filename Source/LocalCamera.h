@@ -17,49 +17,53 @@ extern "C" {
 class LocalCamera : public IVideoEncoder {
 public:
   LocalCamera() {}
-  ~LocalCamera() = default;
+  ~LocalCamera() {
+    fclose(outFile_);
+    sws_freeContext(swsCtx_);
+    avcodec_free_context(&decoderCtx_);
+    avcodec_free_context(&videoCodecCtx_);
+    avformat_close_input(&inputCtx_);
+  }
 
-  void encode(std::function<void(AVPacket &)> handleVideoPacket) {
+  bool init() {
     av_log_set_level(AV_LOG_INFO);
     avdevice_register_all();
 
     AVInputFormat *inputFmt = av_find_input_format("dshow");
     const char *deviceName = "video=Logi C270 HD WebCam"; // 设备名称
 
-    AVFormatContext *inputCtx = nullptr;
-    if (avformat_open_input(&inputCtx, deviceName, inputFmt, nullptr) != 0) {
-      return;
+    if (avformat_open_input(&inputCtx_, deviceName, inputFmt, nullptr) != 0) {
+      return false;
     }
 
-    if (avformat_find_stream_info(inputCtx, nullptr) < 0) {
+    if (avformat_find_stream_info(inputCtx_, nullptr) < 0) {
       std::cerr << "未找到视频流\n";
-      return;
+      return false;
     }
 
-    int videoStreamIndex = -1;
-    for (unsigned i = 0; i < inputCtx->nb_streams; ++i) {
-      if (inputCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-        videoStreamIndex = i;
+    for (unsigned i = 0; i < inputCtx_->nb_streams; ++i) {
+      if (inputCtx_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+        videoStreamIndex_ = i;
         break;
       }
     }
-    if (videoStreamIndex == -1) {
-      std::cerr << "未找到视频流 videoStreamIndex: " << videoStreamIndex
+    if (videoStreamIndex_ == -1) {
+      std::cerr << "未找到视频流 videoStreamIndex_: " << videoStreamIndex_
                 << "\n";
-      return;
+      return false;
     }
 
-    AVCodecParameters *codecPar = inputCtx->streams[videoStreamIndex]->codecpar;
+    AVCodecParameters *codecPar =
+        inputCtx_->streams[videoStreamIndex_]->codecpar;
     const AVCodec *decoder = avcodec_find_decoder(codecPar->codec_id);
-    AVCodecContext *decoderCtx = avcodec_alloc_context3(decoder);
-    // decoderCtx.decoderCtx->pix_fmt == YUV or RGB
-    avcodec_parameters_to_context(decoderCtx, codecPar);
-    avcodec_open2(decoderCtx, decoder, nullptr);
+    decoderCtx_ = avcodec_alloc_context3(decoder);
+    avcodec_parameters_to_context(decoderCtx_, codecPar);
+    avcodec_open2(decoderCtx_, decoder, nullptr);
 
     const AVCodec *encoder = avcodec_find_encoder(AV_CODEC_ID_H264);
     videoCodecCtx_ = avcodec_alloc_context3(encoder);
-    videoCodecCtx_->height = decoderCtx->height;
-    videoCodecCtx_->width = decoderCtx->width;
+    videoCodecCtx_->height = decoderCtx_->height;
+    videoCodecCtx_->width = decoderCtx_->width;
     videoCodecCtx_->pix_fmt = AV_PIX_FMT_YUV420P;
     videoCodecCtx_->time_base = AVRational{1, 25};
     videoCodecCtx_->framerate = AVRational{25, 1};
@@ -93,7 +97,20 @@ public:
       pps_.append(pps, pps + pps_len);
     }
 
-    FILE *outFile = fopen("output1.h264", "wb");
+    // ==== MJPEG -> YUV420P ====
+    swsCtx_ = sws_getContext(decoderCtx_->width, decoderCtx_->height,
+                             decoderCtx_->pix_fmt, videoCodecCtx_->width,
+                             videoCodecCtx_->height, videoCodecCtx_->pix_fmt,
+                             SWS_BILINEAR, nullptr, nullptr, nullptr);
+    if (swsCtx_ == nullptr) {
+      return false;
+    }
+
+    return true;
+  }
+
+  void encode(std::function<void(AVPacket &)> handleVideoPacket) {
+    outFile_ = fopen("output1.h264", "wb");
 
     AVPacket *packet = av_packet_alloc();
     AVFrame *frame = av_frame_alloc();
@@ -102,30 +119,24 @@ public:
     frame->height = videoCodecCtx_->height;
     av_frame_get_buffer(frame, 32);
 
-    // ==== MJPEG -> YUV420P ====
-    SwsContext *swsCtx = sws_getContext(
-        decoderCtx->width, decoderCtx->height, decoderCtx->pix_fmt,
-        videoCodecCtx_->width, videoCodecCtx_->height, videoCodecCtx_->pix_fmt,
-        SWS_BILINEAR, nullptr, nullptr, nullptr);
-
     int frameCount = 0;
     while (frameCount < 100 * 30) {
-      if (av_read_frame(inputCtx, packet) < 0)
+      if (av_read_frame(inputCtx_, packet) < 0)
         break;
-      if (packet->stream_index != videoStreamIndex) {
+      if (packet->stream_index != videoStreamIndex_) {
         av_packet_unref(packet);
         continue;
       }
 
-      avcodec_send_packet(decoderCtx, packet);
-      while (avcodec_receive_frame(decoderCtx, frame) == 0) {
+      avcodec_send_packet(decoderCtx_, packet);
+      while (avcodec_receive_frame(decoderCtx_, frame) == 0) {
         AVFrame *swsFrame = av_frame_alloc();
         swsFrame->format = videoCodecCtx_->pix_fmt;
         swsFrame->width = videoCodecCtx_->width;
         swsFrame->height = videoCodecCtx_->height;
         av_frame_get_buffer(swsFrame, 32);
 
-        sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height,
+        sws_scale(swsCtx_, frame->data, frame->linesize, 0, frame->height,
                   swsFrame->data, swsFrame->linesize);
 
         swsFrame->pts = frameCount++;
@@ -133,7 +144,7 @@ public:
         avcodec_send_frame(videoCodecCtx_, swsFrame);
         AVPacket *encPkt = av_packet_alloc();
         while (avcodec_receive_packet(videoCodecCtx_, encPkt) == 0) {
-          fwrite(encPkt->data, 1, encPkt->size, outFile);
+          fwrite(encPkt->data, 1, encPkt->size, outFile_);
           handleVideoPacket(*encPkt); // 处理视频包
           av_packet_unref(encPkt);
         }
@@ -142,14 +153,8 @@ public:
       av_packet_unref(packet);
     }
 
-    fclose(outFile);
     av_frame_free(&frame);
     av_packet_free(&packet);
-    sws_freeContext(swsCtx);
-    avcodec_free_context(&decoderCtx);
-    avcodec_free_context(&videoCodecCtx_);
-    avformat_close_input(&inputCtx);
-
     return;
   }
 
@@ -161,9 +166,9 @@ public:
   int64_t get_bit_rate() {
     return videoCodecCtx_ ? videoCodecCtx_->bit_rate : 0;
   }
-  uint8_t *get_sps_data() { return sps_.c_str(); }
+  uint8_t *get_sps_data() { return (uint8_t *)(sps_.c_str()); }
   int get_sps_size() { return sps_.size(); }
-  inline uint8_t *get_pps_data() { return pps_.c_str(); }
+  inline uint8_t *get_pps_data() { return (uint8_t *)(pps_.c_str()); }
   int get_pps_size() { return pps_.size(); }
   AVCodecContext *getCodecContext() { return videoCodecCtx_; }
 
@@ -175,6 +180,11 @@ private:
   bool isCapturing_;
   std::string sps_;
   std::string pps_;
+  FILE *outFile_;
+  SwsContext *swsCtx_ = nullptr;
+  AVCodecContext *decoderCtx_ = nullptr;
+  AVFormatContext *inputCtx_ = nullptr;
+  int videoStreamIndex_ = -1;
 };
 
 #endif // _LOCAL_CAMERA_H_
