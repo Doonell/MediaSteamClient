@@ -40,7 +40,7 @@ class RTSPPusher : public Middleware::BaseTrigger<AudioMessage, VideoMessage>,
 public:
   RTSPPusher(Container &msgQueue,
              const std::shared_ptr<Encoder::AACEncoder> &audioEncoder,
-             const std::shared_ptr<Encoder::H264Encoder> &videoEncoder,
+             const std::shared_ptr<Encoder::IVideoEncoder> &videoEncoder,
              const std::shared_ptr<Encoder::AudioS16Resampler> &audioResampler,
              std::string url = "rtsp://192.168.133.129/live/livestream/sub",
              std::string rtsp_transport = "tcp")
@@ -80,11 +80,13 @@ public:
 
     fmt_ctx_->interrupt_callback.callback = decode_interrupt_cb;
     fmt_ctx_->interrupt_callback.opaque = this;
-    if (!create_video_stream(videoEncoder_->getCodecContext())) {
+    if (videoEncoder_ &&
+        !create_video_stream(videoEncoder_->getCodecContext())) {
       LOG_ERROR("Failed to create video stream");
       return false;
     }
-    if (!create_audio_stream(audioEncoder_->getCodecContext())) {
+    if (audioEncoder_ &&
+        !create_audio_stream(audioEncoder_->getCodecContext())) {
       LOG_ERROR("Failed to create audio stream");
       return false;
     }
@@ -306,7 +308,7 @@ public:
 private:
   Container &msgQueue_;
   std::shared_ptr<Encoder::AACEncoder> audioEncoder_;
-  std::shared_ptr<Encoder::H264Encoder> videoEncoder_;
+  std::shared_ptr<Encoder::IVideoEncoder> videoEncoder_;
   std::shared_ptr<Encoder::AudioS16Resampler> audioResampler_;
   std::string url_ = "";
   std::string rtsp_transport_ = "rtsp_transport";

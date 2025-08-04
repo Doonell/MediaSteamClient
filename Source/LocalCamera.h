@@ -14,6 +14,9 @@ extern "C" {
 }
 
 #include "../Encoder/IVideoEncoder.h"
+
+namespace Encoder {
+
 class LocalCamera : public IVideoEncoder {
 public:
   LocalCamera() {}
@@ -109,7 +112,7 @@ public:
     return true;
   }
 
-  void encode(std::function<void(AVPacket &)> handleVideoPacket) {
+  void start(const std::function<void(AVPacket &)> &handleVideoPacket) {
     outFile_ = fopen("output1.h264", "wb");
 
     AVPacket *packet = av_packet_alloc();
@@ -120,7 +123,7 @@ public:
     av_frame_get_buffer(frame, 32);
 
     int frameCount = 0;
-    while (frameCount < 100 * 30) {
+    while (1) {
       if (av_read_frame(inputCtx_, packet) < 0)
         break;
       if (packet->stream_index != videoStreamIndex_) {
@@ -186,5 +189,5 @@ private:
   AVFormatContext *inputCtx_ = nullptr;
   int videoStreamIndex_ = -1;
 };
-
+} // namespace Encoder
 #endif // _LOCAL_CAMERA_H_

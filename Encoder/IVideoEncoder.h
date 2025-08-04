@@ -9,12 +9,14 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+namespace Encoder {
 class IVideoEncoder {
 public:
   virtual ~IVideoEncoder() = default;
 
   virtual bool init() = 0;
-  virtual void encode(uint8_t *, std::function<void(AVPacket &)>) = 0;
+  virtual void encode(uint8_t *, std::function<void(AVPacket &)>) {}
+  virtual void start(const std::function<void(AVPacket &)> &callback) {}
   virtual int get_width() = 0;
   virtual int get_height() = 0;
   virtual double get_framerate() = 0;
@@ -25,5 +27,5 @@ public:
   virtual int get_pps_size() = 0;
   virtual AVCodecContext *getCodecContext() = 0;
 };
-
+} // namespace Encoder
 #endif // _IVIDEO_ENCODER_H_

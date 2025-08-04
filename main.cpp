@@ -182,6 +182,12 @@ int main() {
     return -1;
   }
 
+  auto localCamera = std::make_shared<Encoder::LocalCamera>();
+  if (!localCamera->init()) {
+    std::cout << "LocalCamera init failed" << std::endl;
+    return -1;
+  }
+
   double audio_frame_duration =
       1000.0 / aacEncoder->get_sample_rate() * aacEncoder->GetFrameSampleSize();
 
@@ -191,15 +197,18 @@ int main() {
 
   auto rtspPusher =
       std::make_shared<TransProtocol::RTSPPusher<decltype(msgQueue)>>(
-          msgQueue, aacEncoder, h264Encoder, audioResampler);
+          msgQueue, nullptr, localCamera, nullptr);
   rtspPusher->start();
 
-  pushLocalStream(
+  localCamera->start(
       [&](AVPacket &packet) { rtspPusher->sendRawVideoPacket(packet); });
-  auto rtmpPusher =
-      std::make_shared<TransProtocol::RTMPPusher<decltype(msgQueue)>>(
-          msgQueue, aacEncoder, h264Encoder, audioResampler);
-  rtmpPusher->start();
+
+  // pushLocalStream(
+  //     [&](AVPacket &packet) { rtspPusher->sendRawVideoPacket(packet); });
+  // auto rtmpPusher =
+  //     std::make_shared<TransProtocol::RTMPPusher<decltype(msgQueue)>>(
+  //         msgQueue, aacEncoder, h264Encoder, audioResampler);
+  // rtmpPusher->start();
 
   // auto yuvFileReader =
   //     std::make_shared<YUVFileReader>("720x480_25fps_420p.yuv");
