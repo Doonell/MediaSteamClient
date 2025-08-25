@@ -12,9 +12,9 @@ extern "C" {
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 }
-
 #include "../Encoder/IVideoEncoder.h"
-
+#include "../Util/TimeHelper.h"
+using namespace TimeHelper;
 namespace Encoder {
 
 class LocalCamera : public IVideoEncoder {
@@ -24,7 +24,7 @@ public:
     fclose(outFile_);
     sws_freeContext(swsCtx_);
     avcodec_free_context(&decoderCtx_);
-    avcodec_free_context(&videoCodecCtx_);
+    avcodec_free_context(&encCodecCtx_);
     avformat_close_input(&inputCtx_);
   }
 
@@ -35,7 +35,10 @@ public:
     AVInputFormat *inputFmt = av_find_input_format("dshow");
     const char *deviceName = "video=Logi C270 HD WebCam"; // 设备名称
 
-    if (avformat_open_input(&inputCtx_, deviceName, inputFmt, nullptr) != 0) {
+    AVDictionary *options = nullptr;
+    av_dict_set(&options, "video_size", "1280x720", 0); // 设置采集分辨率
+    av_dict_set(&options, "framerate", "30", 0);        // 可选：设置帧率
+    if (avformat_open_input(&inputCtx_, deviceName, inputFmt, &options) != 0) {
       return false;
     }
 
@@ -64,30 +67,28 @@ public:
     avcodec_open2(decoderCtx_, decoder, nullptr);
 
     const AVCodec *encoder = avcodec_find_encoder(AV_CODEC_ID_H264);
-    videoCodecCtx_ = avcodec_alloc_context3(encoder);
-    videoCodecCtx_->height = decoderCtx_->height;
-    videoCodecCtx_->width = decoderCtx_->width;
-    videoCodecCtx_->pix_fmt = AV_PIX_FMT_YUV420P;
-    videoCodecCtx_->time_base = AVRational{1, 25};
-    videoCodecCtx_->framerate = AVRational{25, 1};
-    videoCodecCtx_->bit_rate = 400000;
+    encCodecCtx_ = avcodec_alloc_context3(encoder);
+    encCodecCtx_->height = decoderCtx_->height;
+    encCodecCtx_->width = decoderCtx_->width;
+    encCodecCtx_->pix_fmt = AV_PIX_FMT_YUV420P;
+    encCodecCtx_->time_base = AVRational{1, 30};
 
     if (encoder->id == AV_CODEC_ID_H264) {
-      av_opt_set(videoCodecCtx_->priv_data, "preset", "ultrafast", 0);
+      av_opt_set(encCodecCtx_->priv_data, "preset", "ultrafast", 0);
     }
-    videoCodecCtx_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-    avcodec_open2(videoCodecCtx_, encoder, nullptr);
+    encCodecCtx_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    avcodec_open2(encCodecCtx_, encoder, nullptr);
     // 读取sps pps 信息
-    if (videoCodecCtx_->extradata) {
-      LOG_INFO("extradata_size: " << videoCodecCtx_->extradata_size);
+    if (encCodecCtx_->extradata) {
+      LOG_INFO("extradata_size: " << encCodecCtx_->extradata_size);
       // 第一个为sps 7
       // 第二个为pps 8
-      uint8_t *sps = videoCodecCtx_->extradata + 4; // 直接跳到数据
+      uint8_t *sps = encCodecCtx_->extradata + 4; // 直接跳到数据
       int sps_len = 0;
       uint8_t *pps = NULL;
       int pps_len = 0;
-      uint8_t *data = videoCodecCtx_->extradata + 4;
-      for (int i = 0; i < videoCodecCtx_->extradata_size - 4; ++i) {
+      uint8_t *data = encCodecCtx_->extradata + 4;
+      for (int i = 0; i < encCodecCtx_->extradata_size - 4; ++i) {
         if (0 == data[i] && 0 == data[i + 1] && 0 == data[i + 2] &&
             1 == data[i + 3]) {
           pps = &data[i + 4];
@@ -95,15 +96,15 @@ public:
         }
       }
       sps_len = int(pps - sps) - 4; // 4是00 00 00 01占用的字节
-      pps_len = videoCodecCtx_->extradata_size - 4 * 2 - sps_len;
+      pps_len = encCodecCtx_->extradata_size - 4 * 2 - sps_len;
       sps_.append(sps, sps + sps_len);
       pps_.append(pps, pps + pps_len);
     }
 
     // ==== MJPEG -> YUV420P ====
     swsCtx_ = sws_getContext(decoderCtx_->width, decoderCtx_->height,
-                             decoderCtx_->pix_fmt, videoCodecCtx_->width,
-                             videoCodecCtx_->height, videoCodecCtx_->pix_fmt,
+                             decoderCtx_->pix_fmt, encCodecCtx_->width,
+                             encCodecCtx_->height, encCodecCtx_->pix_fmt,
                              SWS_BILINEAR, nullptr, nullptr, nullptr);
     if (swsCtx_ == nullptr) {
       return false;
@@ -117,26 +118,29 @@ public:
 
     AVPacket *packet = av_packet_alloc();
     AVFrame *frame = av_frame_alloc();
-    frame->format = videoCodecCtx_->pix_fmt;
-    frame->width = videoCodecCtx_->width;
-    frame->height = videoCodecCtx_->height;
+    frame->format = encCodecCtx_->pix_fmt;
+    frame->width = encCodecCtx_->width;
+    frame->height = encCodecCtx_->height;
     av_frame_get_buffer(frame, 32);
 
     int frameCount = 0;
     while (1) {
+      AVPublishTime::getInstance()->reset();
       if (av_read_frame(inputCtx_, packet) < 0)
         break;
       if (packet->stream_index != videoStreamIndex_) {
         av_packet_unref(packet);
         continue;
       }
+      std::cout << "Current interleaved Time from  input: "
+                << AVPublishTime::getInstance()->getCurrenTime() << std::endl;
 
       avcodec_send_packet(decoderCtx_, packet);
       while (avcodec_receive_frame(decoderCtx_, frame) == 0) {
         AVFrame *swsFrame = av_frame_alloc();
-        swsFrame->format = videoCodecCtx_->pix_fmt;
-        swsFrame->width = videoCodecCtx_->width;
-        swsFrame->height = videoCodecCtx_->height;
+        swsFrame->format = encCodecCtx_->pix_fmt;
+        swsFrame->width = encCodecCtx_->width;
+        swsFrame->height = encCodecCtx_->height;
         av_frame_get_buffer(swsFrame, 32);
 
         sws_scale(swsCtx_, frame->data, frame->linesize, 0, frame->height,
@@ -144,9 +148,9 @@ public:
 
         swsFrame->pts = frameCount++;
 
-        avcodec_send_frame(videoCodecCtx_, swsFrame);
+        avcodec_send_frame(encCodecCtx_, swsFrame);
         AVPacket *encPkt = av_packet_alloc();
-        while (avcodec_receive_packet(videoCodecCtx_, encPkt) == 0) {
+        while (avcodec_receive_packet(encCodecCtx_, encPkt) == 0) {
           fwrite(encPkt->data, 1, encPkt->size, outFile_);
           handleVideoPacket(*encPkt); // 处理视频包
           av_packet_unref(encPkt);
@@ -161,24 +165,22 @@ public:
     return;
   }
 
-  int get_width() { return videoCodecCtx_ ? videoCodecCtx_->width : 0; }
-  int get_height() { return videoCodecCtx_ ? videoCodecCtx_->height : 0; }
+  int get_width() { return encCodecCtx_ ? encCodecCtx_->width : 0; }
+  int get_height() { return encCodecCtx_ ? encCodecCtx_->height : 0; }
   double get_framerate() {
-    return videoCodecCtx_->framerate.num / videoCodecCtx_->framerate.den;
+    return encCodecCtx_->framerate.num / encCodecCtx_->framerate.den;
   }
-  int64_t get_bit_rate() {
-    return videoCodecCtx_ ? videoCodecCtx_->bit_rate : 0;
-  }
+  int64_t get_bit_rate() { return encCodecCtx_ ? encCodecCtx_->bit_rate : 0; }
   uint8_t *get_sps_data() { return (uint8_t *)(sps_.c_str()); }
   int get_sps_size() { return sps_.size(); }
   inline uint8_t *get_pps_data() { return (uint8_t *)(pps_.c_str()); }
   int get_pps_size() { return pps_.size(); }
-  AVCodecContext *getCodecContext() { return videoCodecCtx_; }
+  AVCodecContext *getCodecContext() { return encCodecCtx_; }
 
 private:
   std::string deviceName_;
   AVFormatContext *formatCtx_;
-  AVCodecContext *videoCodecCtx_;
+  AVCodecContext *encCodecCtx_;
   std::thread captureThread_;
   bool isCapturing_;
   std::string sps_;

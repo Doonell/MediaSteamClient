@@ -28,7 +28,7 @@ public:
 
   AVPublishTime() { start_time_ = getCurrentTimeMsec(); }
 
-  void Rest() { start_time_ = getCurrentTimeMsec(); }
+  void reset() { start_time_ = getCurrentTimeMsec(); }
 
   void set_audio_frame_duration(const double frame_duration) {
     audio_frame_duration_ = frame_duration;

@@ -43,7 +43,7 @@ public:
              const std::shared_ptr<Encoder::IVideoEncoder> &videoEncoder,
              const std::shared_ptr<Encoder::AudioS16Resampler> &audioResampler,
              std::string url = "rtsp://192.168.133.129/live/livestream/sub",
-             std::string rtsp_transport = "tcp")
+             std::string rtsp_transport = "udp")
       : msgQueue_(msgQueue), audioEncoder_(audioEncoder),
         videoEncoder_(videoEncoder), audioResampler_(audioResampler),
         url_(std::move(url)), rtsp_transport_(std::move(rtsp_transport)) {}
